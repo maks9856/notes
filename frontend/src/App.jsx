@@ -14,11 +14,11 @@ function RegisterAndLogout() {
   localStorage.clear();
   return <Register />;
 }
-function App() {
+export default function App() {
   return (
   <BrowserRouter>
   <Routes>
-    <Route path="/" element={<ProtectedRoute> <Home /> </ProtectedRoute>} />
+    <Route path="/" element={ <Home /> } />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<RegisterAndLogout />} />
     <Route path="/logout" element={<LogOut />} />
@@ -28,4 +28,4 @@ function App() {
   )
 }
 
-export default App
+
