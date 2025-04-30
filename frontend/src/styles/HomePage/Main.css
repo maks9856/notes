@@ -1,0 +1,115 @@
+main{
+    display: grid;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+    padding: 0 round(up, 7.22223%, .2rem);
+    box-sizing: border-box; 
+}
+.main__homepage{
+    width: 100%;
+    height: 100%;
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: 150px;
+}
+.main__hero{
+    display: grid;
+    grid-auto-rows: min-content;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 20px;
+    row-gap: 50px;
+    align-items: center;
+    margin: 30px auto 0;
+}
+
+.hero__content{
+    grid-column: auto / span 5;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1;
+}
+.hero__title{
+    font: var(--typography-font);
+    font-size: 76.5px;
+    color: var(--color-gray-900);
+    font-style: normal;
+    font-weight: 600;
+    line-height: 95%;
+    letter-spacing: -.04em;
+    margin: 0;
+    padding: 0;
+    text-wrap: balance;
+}
+.hero__subtitle{
+    font: var(--typography-font);
+    font-size: 25px;
+    color: var(--color-gray-900);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%;
+    letter-spacing: -.04em;
+    margin: 0;
+    padding: 0;
+}
+
+.hero__buttons{
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+    width: max-content;
+}
+.hero__button{
+    background-color: #00ADB5;
+    color: #ffffff;
+   
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 1px;
+    padding: 11px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+}
+.hero__button:hover{
+    transform: scale(1.05);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.img__content{
+    grid-column: 6 / span 7;
+    align-items: center;
+    justify-content: center;
+    align-self: end;
+}
+.img__hero{
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+.hero__logoGrouop{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 30px;
+    
+}
+.hero__trusted-by{
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: normal;
+    color: #78736f;
+    margin: 0;
+    padding: 0;
+    word-spacing: 0;
+    vertical-align: baseline;
+}
