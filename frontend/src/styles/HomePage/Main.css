@@ -113,3 +113,14 @@ main{
     word-spacing: 0;
     vertical-align: baseline;
 }
+
+.hero_logoWall{
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    align-items: center;
+    gap: 8px 24px;
+
+}
+.logoWall__container{
+    display: contents;
+}

@@ -18,6 +18,11 @@ export default function Main() {
                     </div>
                     <div className="hero__logoGrouop">
                        <span className="hero__trusted-by">Trusted by teams at</span>
+                       <section className='hero_logoWall'>
+                        <div className='logoWall__container'>
+                          
+                        </div>
+                       </section>
                     </div>
                 </div>
                 <div className='img__content'>
