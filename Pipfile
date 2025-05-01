@@ -15,6 +15,7 @@ pyjwt = "*"
 pytz = "*"
 sqlparse = "*"
 psycopg2-binary = "*"
+dj-rest-auth = {extras = ["with_social"], version = "*"}
 
 [dev-packages]
 
