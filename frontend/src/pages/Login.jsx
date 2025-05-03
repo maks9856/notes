@@ -2,7 +2,12 @@ import Form from '../components/Form'
 
 function Login(){
    return (
-    <Form route='/api/user/token/' method='login'></Form>
+      <>
+      <div className="authentication-container">
+         <Form route='/api/user/token/' method='login'></Form>
+      </div>
+         
+      </>
    )
 }
 

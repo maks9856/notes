@@ -1,6 +1,8 @@
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import "../styles/GoogleAuth.css";
+import googleLogo from "../assets/g-logo.png"; // Імпорт логотипу Google
 const clientId = import.meta.env.VITE_CLIENT_ID;
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -31,7 +33,16 @@ const GoogleLoginButton = () => {
     scope: 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
   });
 
-  return <button onClick={() => login()}>Увійти через Google</button>;
+  return (
+    <div className="google-authentication-container">
+      <button className="google-authentication-button" onClick={() => login()}>
+      <img src={googleLogo} alt="Google Logo"className="google-logo"/>
+      Continue with Google
+    </button>
+  </div>
+  
+  
+);
 };
 
 export default GoogleLoginButton;

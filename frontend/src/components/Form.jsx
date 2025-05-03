@@ -3,14 +3,19 @@ import api from "../api";
 import { useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN,REFRESH_TOKEN } from "../constants";
 import "../styles/Form.css";
-import GoogleLoginButton from "./GoogleAuth";
+import GoogleLoginButton from "../components/GoogleAuth";
 function Forms({route,method}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     
-    const name =method === "login" ? "Login" : "Register";
+    const name =method === "login" ? (<>
+    <p>Log in to your Notes account</p>
+    </>) : 
+    (<>
+    <p>Create your Notes account</p>
+    </>);
 
     const handleSubmit = async (e) => {
         setLoading(true);
@@ -19,7 +24,6 @@ function Forms({route,method}) {
 
         try {
             const res= await api.post(route, {email, password});
-            console.log(res.data);
             if(method === "login"){
                 
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
@@ -41,16 +45,16 @@ function Forms({route,method}) {
     return (
         <>
          <form onSubmit={handleSubmit} className="form-container">
-            <h1>{name}</h1>
+            <h1 className=''>Think it. Make it.</h1>
+            {name}
+            
+            <GoogleLoginButton/>
+            
             <input className="form-input" type="email" value={email} placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
             <input className="form-input" type="password" value={password} placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
-            <button className="form-button" type="submit">{name}</button>
+            <button className="form-button" type="submit"></button>
                 
         </form>
-       
-        <div>
-            <GoogleLoginButton/>
-        </div>
         </>
        
     )
