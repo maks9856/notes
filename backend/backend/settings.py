@@ -32,17 +32,20 @@ ALLOWED_HOSTS = ["*"]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'drf_social_oauth2.authentication.SocialAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
-
+'''
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+'''
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -60,13 +63,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'corsheaders',
+    
+    'oauth2_provider',
+    'social_django',
+    'drf_social_oauth2',
+    
    
-    'django.contrib.sites',
-    'allauth' , 
-    'allauth.account' , 
-    'allauth.socialaccount' , 
-    'allauth.socialaccount.providers.google',
-    'dj_rest_auth.registration'
 ]
 
 MIDDLEWARE = [
@@ -79,7 +81,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "allauth.account.middleware.AccountMiddleware" , 
+    'social_django.middleware.SocialAuthExceptionMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -91,9 +94,13 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
+                
             ],
         },
     },
@@ -171,32 +178,29 @@ CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'Users_Api.CustomUser'
 
-SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+   # Google  OAuth2
+    'social_core.backends.google.GoogleOAuth2',
+    # drf-social-oauth2
+    'drf_social_oauth2.backends.DjangoOAuth2',
+    # Django
+    'django.contrib.auth.backends.ModelBackend',
+)
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_USERNAME_REQUIRED = False 
-ACCOUNT_EMAIL_REQUIRED = True 
-ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
 
-GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
-GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
-GOOGLE_OAUTH_CALLBACK_URL = os.getenv("GOOGLE_OAUTH_CALLBACK_URL")
 
-SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "APPS": [
-            {
-                "client_id": GOOGLE_OAUTH_CLIENT_ID,
-                "secret": GOOGLE_OAUTH_CLIENT_SECRET,
-                "key": "",
-            },
-        ],
-        "SCOPE": ["profile", "email"],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
-    }
-}
+
+'''
+curl -X POST -d "grant_type=password&username=a@a.com&password=123456&client_id=OSj6dGcieZaZylXWDAtu3LZIEc7IVE9QV6mJTXCg&backend=google-oauth2&client_secret=ixctHlqfkQhcyN77qEAshrrVYabZBRs4Jcu8BTiZ6vc5ECqqh6f7YlptbuG1QeN4w8Y8xmM78yYwwEB7ifodbjQlaPwMvfrr7qLYYLu1RcKbbbF5itVm8m5YBdPSAT7A" http://localhost:8000/auth/token
+
+curl -X POST -d "grant_type=convert_token&client_id=OSj6dGcieZaZylXWDAtu3LZIEc7IVE9QV6mJTXCg&backend=google-oauth2&token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjA3YjgwYTM2NTQyODUyNWY4YmY3Y2QwODQ2ZDc0YThlZTRlZjM2MjUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTA0ODM2Nzk5OTQ0NDAyMDEyMDciLCJlbWFpbCI6Im1hcmNlbnVrbTk5NUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6ImpuZHp5U0FJX3VBaFZyOGozeXlJbFEiLCJpYXQiOjE3NDYyNjg2MDAsImV4cCI6MTc0NjI3MjIwMH0.HAAukJ3U15fpzwMJIdTqh91-SzZCJxgUz1UHFRhJ7jA8xp15LKvVd5nyyozR0yj6q4mOuPf4ne8TsG-Yo3sD_d0IriTZ4LfqSQJQqXq5w6TmUPYa2-b_K9MOWWbq4RskIp6Pi2ejxz2ly9K60H3Xec8NwsjFBM9UUfPtz92_jwnRkuPtRg1gpVEnjkPlC6uSR2nSW59PN_CofohabOZyitxiEI_zNtl7FDLfZhF5ULI1IQKw9uLRhIFaf5kan7h2Y2VS80hn_B-w5ysB3nrje6uh8DM7CghKvl34w3cijeCXSfdt6RC1d0GFZTKt5cxx_AZPHFfvASFU008ViKQSmw" http://127.0.0.1:8000/auth/convert-token
+'''

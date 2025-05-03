@@ -3,7 +3,7 @@ import api from "../api";
 import { useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN,REFRESH_TOKEN } from "../constants";
 import "../styles/Form.css";
-
+import GoogleLoginButton from "./GoogleAuth";
 function Forms({route,method}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -24,8 +24,6 @@ function Forms({route,method}) {
                 
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                console.log(res.data.access);
-                console.log(res.data.refresh);
                 navigate("/");
             }
             else{
@@ -41,13 +39,20 @@ function Forms({route,method}) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="form-container">
+        <>
+         <form onSubmit={handleSubmit} className="form-container">
             <h1>{name}</h1>
             <input className="form-input" type="email" value={email} placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
             <input className="form-input" type="password" value={password} placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
             <button className="form-button" type="submit">{name}</button>
                 
         </form>
+       
+        <div>
+            <GoogleLoginButton/>
+        </div>
+        </>
+       
     )
 }
 
