@@ -39,7 +39,7 @@ const GoogleLoginButton = () => {
       <img src={googleLogo} alt="Google Logo"className="google-logo"/>
       Continue with Google
     </button>
-  </div>
+    </div>
   
   
 );

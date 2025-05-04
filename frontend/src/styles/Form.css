@@ -8,21 +8,21 @@
     margin: 50px auto;
     padding: 20px;
 
-    
     border:none;
-    max-width: 400px;
+    max-width: 500px;
+   
 }
 .form-input{
-   width: 90%;
+   width: 100%;
    padding: 10px;
    margin: 10px 0;
    border: 1px solid #ccc; 
    border-radius: 4px;
    box-sizing: border-box;
 }
-.font-button{
-    width: 95%;
-    padding: 10px;
+.form-button{
+    width: 100%;
+    padding: 15px;
     margin: 20px 0;
     background-color: #007bff;
     color: white;
@@ -31,6 +31,29 @@
     cursor: pointer;
     transition: background-color 0.3s ease-in-out;
 }
-.font-button:hover{
+.form-button:hover{
     background-color: #0056b3;
+}
+.form-header{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0px auto 20px;
+}
+.headline{
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.264px;
+    line-height: 26px;
+    margin: 0px;
+}
+
+.form-subtitle{
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.264px;
+    line-height: 26px;
+    margin: 0px;
+    color: rgba(70, 68, 64,0.45);
 }
