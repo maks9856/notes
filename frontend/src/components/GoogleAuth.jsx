@@ -35,7 +35,7 @@ const GoogleLoginButton = () => {
 
   return (
     <div className="google-authentication-container">
-      <button className="google-authentication-button" onClick={() => login()}>
+      <button type='button' className="google-authentication-button" onClick={() => login()}>
       <img src={googleLogo} alt="Google Logo"className="google-logo"/>
       Continue with Google
     </button>
