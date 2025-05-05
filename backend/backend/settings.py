@@ -38,13 +38,28 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'register': '1/minute',
+        'profile': '30/minute',
+        'change_password': '1/minute',
+        'token': '10/minute',
+        'token_refresh': '30/minute',
+        'password_reset': '3/hour',
+        'password_reset_confirm': '3/hour',
+        'social_token': '5/minute',
+        'social_convert': '10/minute',
+        'social_revoke': '10/minute',
+    }
 }
-'''
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
-'''
+
 
 # Application definition
 

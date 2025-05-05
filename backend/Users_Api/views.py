@@ -11,24 +11,32 @@ from django.core.mail import EmailMultiAlternatives,send_mail
 from django.utils.http import urlsafe_base64_encode , urlsafe_base64_decode
 from django.utils.encoding import force_bytes,force_str
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .throttling import (
+    RegisterRateThrottle, ProfileRateThrottle, ChangePasswordRateThrottle,
+    TokenRateThrottle, TokenRefreshRateThrottle, PasswordResetRateThrottle,
+    PasswordResetConfirmRateThrottle
+)
 
 
 # Create your views here.
 User= get_user_model()
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
+    throttle_classes = [RegisterRateThrottle]
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
     
 class ProfileUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
+    throttle_classes = [ProfileRateThrottle]
     permission_classes = [IsAuthenticated]
     def get_object(self):
         return self.request.user
     
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
-    
+    throttle_classes = [ChangePasswordRateThrottle]
     def post(self, request):
         user = request.user
         serializer = ChangePasswordSerializer(data=request.data)
@@ -52,7 +60,7 @@ class ChangePasswordView(APIView):
 
 class PasswordResetView(APIView):
     permission_classes = [AllowAny]
-
+    throttle_classes = [PasswordResetRateThrottle]
     def post(self, request):
         email = request.data.get('email')
         try:
@@ -74,7 +82,7 @@ class PasswordResetView(APIView):
     
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
-
+    throttle_classes = [PasswordResetConfirmRateThrottle]
     def post(self, request):
         uidb64 = request.data.get('uid')
         token = request.data.get('token')
@@ -94,4 +102,10 @@ class PasswordResetConfirmView(APIView):
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
             return Response({"detail": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
             
-            
+class CustomTokenObtainPairView(TokenObtainPairView):
+    throttle_classes = [TokenRateThrottle]
+    permission_classes = [AllowAny]
+
+class CustomTokenRefreshView(TokenRefreshView):
+    throttle_classes = [TokenRefreshRateThrottle]
+    permission_classes = [AllowAny]
