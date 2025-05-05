@@ -9,14 +9,14 @@ from rest_framework import status
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives,send_mail
 from django.utils.http import urlsafe_base64_encode , urlsafe_base64_decode
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes,force_str
 from django.contrib.auth.tokens import default_token_generator
 
 
 # Create your views here.
-user= get_user_model()
+User= get_user_model()
 class CreateUserView(generics.CreateAPIView):
-    queryset = user.objects.all()
+    queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
     
@@ -52,43 +52,46 @@ class ChangePasswordView(APIView):
 
 class PasswordResetView(APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         email = request.data.get('email')
         try:
-            use = user.objects.get(email=email)
-            uid= urlsafe_base64_encode(force_bytes(use.pk))
-            token= default_token_generator.make_token(use)
+            user = User.objects.get(email=email)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
             reset_url = f"http://localhost:5173/reset-password/{uid}/{token}/"
+
             send_mail(
                 subject="Password Reset Request",
                 message=f"Click the link to reset your password: {reset_url}",
                 from_email=None,
                 recipient_list=[email],
             )
-        except user.DoesNotExist:
-           pass
-        
-        return Response({"detail": "Password reset link sent to your email."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            pass
+
+        return Response({"detail": "If an account with that email exists, a reset link was sent."}, status=status.HTTP_200_OK)
     
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
-        uid = request.data.get('uid')
+        uidb64 = request.data.get('uid')
         token = request.data.get('token')
-        password = request.data.get('password')
-        
+        new_password = request.data.get('password')
+
         try:
-            uid = urlsafe_base64_decode(uid).decode()
-            user = user.objects.get(pk=uid)
-            if default_token_generator.check_token(user, token):
-                user.set_password(password)
-                user.save()
-                return Response({"detail": "Password has been reset."}, status=status.HTTP_200_OK)
-            else:
-                return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+
+            if not default_token_generator.check_token(user, token):
+                return Response({"detail": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(new_password)
+            user.save()
+            return Response({"detail": "Password has been reset successfully."}, status=status.HTTP_200_OK)
+
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
             return Response({"detail": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
             
             

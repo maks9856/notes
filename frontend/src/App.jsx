@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
 import NotFound from './pages/Notfound'
+import ResetPassword from './pages/ResetPassword'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function LogOut() {
@@ -22,7 +23,9 @@ export default function App() {
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<RegisterAndLogout />} />
     <Route path="/logout" element={<LogOut />} />
+    <Route path="/reset-password" element={<ResetPassword/>} />
     <Route path="*" element={<NotFound />} />
+
   </Routes>
   </BrowserRouter>
   )
