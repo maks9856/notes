@@ -105,3 +105,11 @@
 .password-container a:hover {
     text-decoration: underline;
 }
+
+.btn-reset-password {
+    background-color: transparent;
+    color: #222;
+    border: none;
+    margin-left: 0;
+    align-self: flex-end;
+}

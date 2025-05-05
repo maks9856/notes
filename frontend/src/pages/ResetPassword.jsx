@@ -22,7 +22,7 @@ export default function ResetPassword() {
 
         setLoading(true);
         try {
-            const res = await api.post('/auth/reset-password', { email });
+            const res = await api.post('/api/user/password_reset/', { email });
             if (res.status === 200) {
                 setButtonText('Reset Link Sent!');
                 setError(null);
@@ -37,11 +37,14 @@ export default function ResetPassword() {
     };
 
     return (
-        <div>
-            <h1>Reset Password</h1>
-            <form onSubmit={handleButtonClick} noValidate>
+        <div className="authentication-container">
+            
+            <form className="form-container"  onSubmit={handleButtonClick} noValidate>
+            <h1  className="headline">Reset Password</h1>
                 <input
                     type="email"
+                    className="form-input"
+                    autoComplete="email"
                     maxLength={255}
                     name="email"
                     placeholder="Email"
@@ -54,12 +57,12 @@ export default function ResetPassword() {
                 />
 
                 {error && (
-                    <div className="reset-error">
+                    <div className="form-error">
                         <p>{error}</p>
                     </div>
                 )}
 
-                <button type="submit" disabled={loading}>
+                <button type="submit" className="form-button" onClick={()=>{setButtonText('Reset Link Again')}} disabled={loading}>
                     {buttonText}
                 </button>
             </form>

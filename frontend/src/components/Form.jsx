@@ -117,7 +117,7 @@ function Forms({ route, method }) {
                         required
                     />
                     {method === "login" && (
-                        <button type="button" onClick={() => navigate('/reset-password')}>Forgot password?</button>
+                        <button type="button" className="btn-reset-password" onClick={() => navigate('/reset-password')}>Forgot password?</button>
                     )}
                     
                 </div>
