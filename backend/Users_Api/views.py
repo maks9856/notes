@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated , AllowAny
-from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSerializer
+from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSerializer, CustomTokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -128,6 +128,7 @@ class PasswordResetConfirmView(APIView):
             
 class CustomTokenObtainPairView(TokenObtainPairView):
     throttle_classes = [TokenRateThrottle]
+    serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [AllowAny]
 
 class CustomTokenRefreshView(TokenRefreshView):

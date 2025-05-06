@@ -7,6 +7,8 @@ import NotFound from './pages/Notfound'
 import ResetPassword from './pages/ResetPassword'
 import PasswordResetCondirm from './pages/PasswordResetConfirm'
 import ProtectedRoute from './components/ProtectedRoute'
+import EmailVerification from './pages/EmailVerification'
+import CheckEmail from './pages/CheckEmail'
 
 function LogOut() {
   localStorage.clear();
@@ -26,6 +28,8 @@ export default function App() {
     <Route path="/logout" element={<LogOut />} />
     <Route path="/reset-password" element={<ResetPassword/>} />
     <Route path="/reset-password/:uid/:token" element={<PasswordResetCondirm/>} />
+    <Route path="/activate/:uid/:token" element={<EmailVerification/>}></Route>
+    <Route path="/check-email" element={<CheckEmail/>} />
     <Route path="*" element={<NotFound />} />
 
   </Routes>

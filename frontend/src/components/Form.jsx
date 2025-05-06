@@ -67,7 +67,7 @@ function Forms({ route, method }) {
                 localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
                 navigate("/");
             } else {
-                navigate("/login");
+                navigate("/check-email");
             }
         } catch (error) {
 
