@@ -30,7 +30,6 @@ export default function ResetPassword() {
                 setError("Failed to send reset link. Please try again.");
             }
         } catch (error) {
-            setError("Server error: " + (error?.response?.data?.detail || error.message));
         } finally {
             setLoading(false);
         }
