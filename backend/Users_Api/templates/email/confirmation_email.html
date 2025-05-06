@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ласкаво просимо</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            background-color: snow;
+        }
+    </style>
+</head>
+<body>
+    <p>Привіт, {{ user.email }}!</p>
+    <p>Дякуємо за реєстрацію в сервісі нотаток.</p>
+    <p>Будь ласка, підтвердіть свою електронну адресу, натиснувши на посилання нижче:</p>
+    <p><a href="{{ confirmation_link }}">Підтвердити email</a></p>
+    <p>Якщо ви не реєструвалися — просто ігноруйте цей лист.</p>
+
+</body>
+</html>

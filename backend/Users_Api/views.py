@@ -27,6 +27,30 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
     
+    def perform_create(self, serializer):
+        user = serializer.save()
+        self.send_confirmation_email(user)
+     
+    
+    
+    def send_confirmation_email(self, user):
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        confirmation_url = f"http://localhost:5173/activate/{uid}/{token}/"
+
+        html_content = render_to_string("email/confirmation_email.html", {
+            'user': user,
+            'confirmation_link': confirmation_url
+        })
+        subject = "Activate your account"
+        from_email = None
+        to = [user.email]
+
+        msg = EmailMultiAlternatives(subject, '', from_email, to)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+    
+    
 class ProfileUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     throttle_classes = [ProfileRateThrottle]
@@ -109,3 +133,25 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class CustomTokenRefreshView(TokenRefreshView):
     throttle_classes = [TokenRefreshRateThrottle]
     permission_classes = [AllowAny]
+    
+class EmailVerificationView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [RegisterRateThrottle]
+    
+    def post(self, request):
+        uid= request.data.get('uid')
+        token= request.data.get('token')
+        try:
+            uid= force_str(urlsafe_base64_decode(uid))
+            user= User.objects.get(pk=uid)
+            
+            if not default_token_generator.check_token(user, token):
+                return Response({"detail": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user.is_active= True
+            user.save()
+            
+            return Response({"detail": "Email verified successfully."}, status=status.HTTP_200_OK)
+        
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            return Response({"detail": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
