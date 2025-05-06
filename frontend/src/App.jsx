@@ -1,4 +1,5 @@
 import react from 'react'
+import useAutoTokenRefresh from './hooks/useAutoTokenRefresh.jsx'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -19,6 +20,7 @@ function RegisterAndLogout() {
   return <Register />;
 }
 export default function App() {
+  useAutoTokenRefresh();
   return (
   <BrowserRouter>
   <Routes>
