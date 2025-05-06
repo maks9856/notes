@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .loging import log_event
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -42,6 +43,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         if not self.user.is_active:
             raise serializers.ValidationError("Account is not activated.")
+        request = self.context['request']
+        log_event(request, self.user, "login_success")
         return data
     
         

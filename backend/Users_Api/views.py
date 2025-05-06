@@ -18,6 +18,7 @@ from .throttling import (
     TokenRateThrottle, TokenRefreshRateThrottle, PasswordResetRateThrottle,
     PasswordResetConfirmRateThrottle
 )
+from .loging import log_event
 
 
 # Create your views here.
@@ -31,6 +32,7 @@ class CreateUserView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
         self.send_confirmation_email(user)
+        log_event(self.request, user, "register")
      
     
     
@@ -68,6 +70,7 @@ class LogoutView(APIView):
             refresh_token = request.data.get('refresh_token')
             token= RefreshToken(refresh_token)
             token.blacklist()
+            log_event(request, request.user, "logout")
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"detail": "Error logging out."}, status=status.HTTP_400_BAD_REQUEST)
@@ -92,8 +95,9 @@ class ChangePasswordView(APIView):
             msg = EmailMultiAlternatives(subject, '', from_email, to)
             msg.attach_alternative(http_context, "text/html")
             msg.send()
-            
+            log_event(request, user, "password_change")
             return Response({'detail': 'Password successfully changed.'}, status=status.HTTP_200_OK)
+                    
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetView(APIView):
@@ -135,6 +139,7 @@ class PasswordResetConfirmView(APIView):
 
             user.set_password(new_password)
             user.save()
+            log_event(request, user, "password_reset")
             return Response({"detail": "Password has been reset successfully."}, status=status.HTTP_200_OK)
 
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
@@ -144,6 +149,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     throttle_classes = [TokenRateThrottle]
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code != 200:
+            email = request.data.get('email') or request.data.get('username')
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                user = User.objects.get(email=email)
+                log_event(request, user, "login_failed")
+            except User.DoesNotExist:
+                pass
+        return response
 
 class CustomTokenRefreshView(TokenRefreshView):
     throttle_classes = [TokenRefreshRateThrottle]
