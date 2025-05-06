@@ -14,7 +14,7 @@ export default function PasswordResetConfirm() {
 
     const handleButtonClick = async (e) => {
         e.preventDefault();
-
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^])[A-Za-z\d@$!%*?&#^]{8,}$/;
         if (!password || !confirmPassword) {
             setError("Please fill in all fields.");
             return;
@@ -23,6 +23,11 @@ export default function PasswordResetConfirm() {
             setError("Passwords do not match.");
             return;
         }
+        if (!passwordRegex.test(password)) {
+            setError("Invalid password.");
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await api.post('/api/user/password_reset_confirm/', { uid, token, password });

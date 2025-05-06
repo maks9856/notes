@@ -6,6 +6,9 @@ from .models import CustomUser
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
 
+    def validate_password(self, value):
+        validate_password(value)
+        return value
     class Meta:
         model = CustomUser
         fields = ['id', 'email', 'password']

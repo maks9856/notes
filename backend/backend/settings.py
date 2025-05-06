@@ -155,6 +155,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'Users_Api.validators.CustomPasswordValidation',
+    },
 ]
 
 # Email backend settings
