@@ -1,9 +1,10 @@
 from django.urls import path, include
-from .views import CreateUserView ,ProfileUserView, ChangePasswordView, PasswordResetView,PasswordResetConfirmView, CustomTokenObtainPairView, CustomTokenRefreshView,EmailVerificationView
+from .views import CreateUserView ,ProfileUserView,LogoutView, ChangePasswordView, PasswordResetView,PasswordResetConfirmView, CustomTokenObtainPairView, CustomTokenRefreshView,EmailVerificationView
 
 urlpatterns = [
     path('user/register/', CreateUserView.as_view(), name='register'),
     path('user/profile/', ProfileUserView.as_view(), name='profile'),
+    path('user/logout/',LogoutView.as_view(), name='logout'),
     path('user/change_password/', ChangePasswordView.as_view(), name='change_password'),
     path('user/token/', CustomTokenObtainPairView.as_view(), name='get_token'),
     path('user/token/refresh/', CustomTokenRefreshView.as_view(), name='refresh_token'),

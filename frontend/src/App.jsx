@@ -11,10 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import EmailVerification from './pages/EmailVerification'
 import CheckEmail from './pages/CheckEmail'
 
-function LogOut() {
-  localStorage.clear();
-  return <Navigate to="/login" />;
-}
+
 function RegisterAndLogout() {
   localStorage.clear();
   return <Register />;
@@ -27,7 +24,6 @@ export default function App() {
     <Route path="/" element={ <Home /> } />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<RegisterAndLogout />} />
-    <Route path="/logout" element={<LogOut />} />
     <Route path="/reset-password" element={<ResetPassword/>} />
     <Route path="/reset-password/:uid/:token" element={<PasswordResetCondirm/>} />
     <Route path="/activate/:uid/:token" element={<EmailVerification/>}></Route>

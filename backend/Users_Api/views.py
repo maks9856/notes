@@ -12,6 +12,7 @@ from django.utils.http import urlsafe_base64_encode , urlsafe_base64_decode
 from django.utils.encoding import force_bytes,force_str
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
 from .throttling import (
     RegisterRateThrottle, ProfileRateThrottle, ChangePasswordRateThrottle,
     TokenRateThrottle, TokenRefreshRateThrottle, PasswordResetRateThrottle,
@@ -58,6 +59,19 @@ class ProfileUserView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         return self.request.user
     
+    
+    
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh_token')
+            token= RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"detail": "Error logging out."}, status=status.HTTP_400_BAD_REQUEST)
+               
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [ChangePasswordRateThrottle]
