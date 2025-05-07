@@ -18,6 +18,7 @@ drf-social-oauth2 = "*"
 social-auth-app-django = "*"
 django-oauth-toolkit = "*"
 djangorestframework-simplejwt = "*"
+unidecode = "*"
 
 [dev-packages]
 
