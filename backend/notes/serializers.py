@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Note
+from .models import Note, Tag
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,4 +15,15 @@ class NoteSerializer(serializers.ModelSerializer):
             'title': {'required': True},
             'content': {'required': False},
             'author': {'read_only': True},
+        }
+        
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name', 'slug']
+        read_only_fields = ['id', 'slug']
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'slug': {'read_only': True},
+            'name': {'required': True},
         }

@@ -42,6 +42,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
+        'user': '100000000/day',
         'register': '20/minute',
         'profile': '30/minute',
         'change_password': '1/minute',
