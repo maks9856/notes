@@ -65,7 +65,8 @@ function Forms({ route, method }) {
             if (method === "login") {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                navigate("/");
+                
+                navigate(`/notes`);
             } else {
                 navigate("/check-email");
             }

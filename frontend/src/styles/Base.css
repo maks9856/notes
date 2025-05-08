@@ -1,0 +1,15 @@
+.container{
+    display: flex;
+    min-height: 100vh;
+}
+.aside-left {
+    width: 250px;
+    background-color: #202020;
+    color: white;
+    padding: 1rem;
+}
+.main-content {
+    flex: 1;
+    background-color: #191919;
+    padding: 1.5rem;
+}

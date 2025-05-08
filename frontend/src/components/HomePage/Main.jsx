@@ -7,7 +7,7 @@ export default function Main() {
         navigate('/register');
     }
     return (
-        <main>
+        <main className='main'>
             <div className='main__homepage'>
             <section className="main__hero">
                 <div className="hero__content">

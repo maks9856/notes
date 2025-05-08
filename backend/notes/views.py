@@ -31,19 +31,22 @@ class NoteDetailView(generics.RetrieveUpdateDestroyAPIView):
         
 class TagCreateView(generics.ListCreateAPIView):
     serializer_class = TagSerializer
-    permission_classes = [AllowAny]
-    queryset=Tag.objects.all()
-
-   
+    permission_classes = [IsAuthenticated]
+    
+    
+    def get_queryset(self):
+        return Tag.objects.filter(author=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(author=self.request.user)
 
 class TagDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TagSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'slug'
-    queryset = Tag.objects.all()
+    
+    def get_queryset(self):
+        return Tag.objects.filter(author=self.request.user)
      
 
     def perform_update(self, serializer):
@@ -51,7 +54,7 @@ class TagDetailView(generics.RetrieveUpdateDestroyAPIView):
         old_name = instanse.name
         new_name = self.request.data.get('name',old_name)
         if old_name != new_name:
-            serializer.save(slug=slugify(unidecode(new_name)))
+            serializer.save(author=self.request.user, slug=slugify(unidecode(new_name)))
         else:
             serializer.save()
     def perform_destroy(self, instance):

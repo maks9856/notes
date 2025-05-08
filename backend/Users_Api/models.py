@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import uuid
 # Create your models here.
 
 class CustomUser(AbstractUser):
+    
     email = models.EmailField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
 

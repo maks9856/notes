@@ -2,9 +2,11 @@ from django.db import models
 from Users_Api.models import CustomUser
 from django.utils.text import slugify
 from unidecode import unidecode
+import uuid
 # Create your models here.
 
 class Note(models.Model):
+    uuid=models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255)
     content = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -21,7 +23,7 @@ class Note(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
     slug=models.SlugField(max_length=255, unique=True, blank=True)
-    
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tags')
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(unidecode(self.name))

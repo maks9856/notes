@@ -4,8 +4,8 @@ from .models import Note, Tag
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'title', 'content', 'created_at', 'updated_at', 'author', 'is_favorite']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'author']
+        fields = ['id','uuid', 'title', 'content', 'created_at', 'updated_at', 'author', 'is_favorite']
+        read_only_fields = ['id','uuid', 'created_at', 'updated_at', 'author']
         
         extra_kwargs = {
             'is_favorite': {'required': False},
