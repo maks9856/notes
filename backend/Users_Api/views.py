@@ -58,8 +58,10 @@ class ProfileUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     throttle_classes = [ProfileRateThrottle]
     permission_classes = [IsAuthenticated]
-    def get_object(self):
-        return self.request.user
+    def get(self,request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     
     
@@ -188,3 +190,4 @@ class EmailVerificationView(APIView):
         
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
             return Response({"detail": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
+        

@@ -2,14 +2,79 @@
     display: flex;
     min-height: 100vh;
 }
-.aside-left {
-    width: 250px;
-    background-color: #202020;
-    color: white;
-    padding: 1rem;
+.sidebar-container {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+    z-index: 111;
+    background-color: rgb(32, 32, 32);
+    box-shadow: rgba(255, 255, 255, 0.05) -1px 0px 0px 0px inset;
+    width: 248px;
+    transition: width 200ms ease;
+    overflow-y: auto; /* Якщо багато пунктів */
+    pointer-events: auto; 
 }
-.main-content {
-    flex: 1;
-    background-color: #191919;
-    padding: 1.5rem;
+
+.div-content {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    
+    isolation: auto;
+    background: transparent;
+}
+.header-notes-container {
+    display: flex;
+    background: rgb(25, 25, 25);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    max-width: 100vw;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.main-notes-container {
+    display: flex;
+    overflow-y: auto;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-direction: column;
+    background: rgb(25, 25, 25);
+    z-index: 1;
+    height: 100vh;
+    max-height: 100%;
+    position: relative;
+    opacity: 1;
+    transform: translateX(0px);
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+    transition-property: width, opacity, transform;
+}
+.notes-sidebar-swicher{
+    -webkit-user-select: none;
+    user-select: none;
+    transition: background 20ms ease-in;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    min-width: 0px;
+    height: 32px;
+    width: auto;
+    margin: 6px 8px;
+    border-radius: 6px;
+    padding: 0px;
+}
+.user-notes-sidebar-swicher{
+    display: flex
+;
+    align-items: center;
+    width: 100%;
+    font-size: 14px;
+    min-height: 27px;
+    height: 30px;
+    padding: 4px 8px;
+    overflow: hidden;
+    margin-left: 0px;
 }

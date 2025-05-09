@@ -3,7 +3,7 @@ from .views import CreateUserView ,ProfileUserView,LogoutView, ChangePasswordVie
 
 urlpatterns = [
     path('user/register/', CreateUserView.as_view(), name='register'),
-    path('user/profile/', ProfileUserView.as_view(), name='profile'),
+    path('user/me/', ProfileUserView.as_view(), name='profile'),
     path('user/logout/',LogoutView.as_view(), name='logout'),
     path('user/change_password/', ChangePasswordView.as_view(), name='change_password'),
     path('user/token/', CustomTokenObtainPairView.as_view(), name='get_token'),

@@ -31,7 +31,6 @@ export default function App() {
     <Route path="/check-email" element={<CheckEmail/>} />
     <Route path="/notes" element={<ProtectedRoute><Base/></ProtectedRoute>}>
       <Route index element={<ProtectedRoute><Notes/></ProtectedRoute>} />
-      
     </Route>
 
     <Route path="*" element={<NotFound />} />
