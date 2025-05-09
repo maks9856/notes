@@ -1,4 +1,5 @@
 import react from 'react'
+import UserContextProvider from './contexts/UserContexts/UserContextsProvider.jsx'
 import useAutoTokenRefresh from './hooks/useAutoTokenRefresh.jsx'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 import Login from './pages/Login'
@@ -20,6 +21,7 @@ function RegisterAndLogout() {
 export default function App() {
   useAutoTokenRefresh();
   return (
+  <UserContextProvider>
   <BrowserRouter>
   <Routes>
     <Route path="/" element={ <Home /> } />
@@ -37,6 +39,7 @@ export default function App() {
 
   </Routes>
   </BrowserRouter>
+  </UserContextProvider>
   )
 }
 
