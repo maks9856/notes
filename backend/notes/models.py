@@ -7,8 +7,8 @@ import uuid
 
 class Note(models.Model):
     uuid=models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=255)
-    content = models.TextField(default='')
+    title = models.CharField(max_length=255,default='New title',blank=True)
+    content = models.TextField(default='',blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notes')
@@ -16,8 +16,11 @@ class Note(models.Model):
     tag=models.ManyToManyField('Tag', blank=True, related_name='notes')
     def __str__(self):
         return self.title
+    
+
     class Meta:
         ordering = ['-created_at']
+        
         
     
 class Tag(models.Model):

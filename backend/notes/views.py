@@ -20,7 +20,7 @@ class NoteListCreateView(generics.ListCreateAPIView):
 class NoteDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
-
+    lookup_field = 'uuid'
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user)
 
@@ -28,6 +28,12 @@ class NoteDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save(author=self.request.user)
     def perform_destroy(self, instance):
         instance.delete()
+    def get_object(self):
+        try:
+            return super().get_object()
+        except Exception as e:
+            print("Error fetching note:", e)
+            raise
         
 class TagCreateView(generics.ListCreateAPIView):
     serializer_class = TagSerializer

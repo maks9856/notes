@@ -13,7 +13,7 @@ import EmailVerification from './pages/EmailVerification'
 import CheckEmail from './pages/CheckEmail'
 import Base from './components/Base.jsx'
 import Notes from './pages/Notes'
-
+import NotesCreate from './pages/NotesCreate'
 function RegisterAndLogout() {
   localStorage.clear();
   return <Register />;
@@ -31,8 +31,9 @@ export default function App() {
     <Route path="/reset-password/:uid/:token" element={<PasswordResetCondirm/>} />
     <Route path="/activate/:uid/:token" element={<EmailVerification/>}></Route>
     <Route path="/check-email" element={<CheckEmail/>} />
-    <Route path="/notes" element={<ProtectedRoute><Base/></ProtectedRoute>}>
-      <Route index element={<ProtectedRoute><Notes/></ProtectedRoute>} />
+    <Route path="/notes" element={<ProtectedRoute><Base /></ProtectedRoute>}>
+       <Route index element={<Notes />} />
+      <Route path=":uuid" element={<NotesCreate />} />
     </Route>
 
     <Route path="*" element={<NotFound />} />

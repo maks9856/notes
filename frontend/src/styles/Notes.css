@@ -6,3 +6,25 @@
     padding: 2rem; 
     gap: 2rem;    
 }
+.notes-main {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  row-gap: 1rem;
+  width: 100%;
+   
+}
+.notes-greeting{
+    grid-row: 1;
+    justify-items: center;
+    text-align: center;
+      
+}
+.user-greeting{
+    font-size: 24px;
+    font-weight: 600;
+    font-style: normal;
+    color: rgba(255, 255, 255, 0.81);
+}
+.notes-recent{
+    grid-row: 2;
+}
