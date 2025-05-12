@@ -14,7 +14,7 @@ export default function NotesCreate() {
 
   useEffect(()=>{
     if(!uuid)return;
-    api.post(`/notes-api/notes/${uuid}/`,{},{
+    api.post(`/notes-api/notes/${uuid}/`,{...note,title:note.title|| 'Нова нотатка',},{
         headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
       }).then((res) => {
         setNote(res.data);
@@ -33,7 +33,10 @@ export default function NotesCreate() {
     document.title = note.title || 'Нова нотатка';
 
     const timeout = setTimeout(() => {
-      api.put(`/notes-api/notes/${uuid}/`, note, {
+      api.put(`/notes-api/notes/${uuid}/`, {
+        ...note,
+        title: note.title || 'Нова нотатка',
+      }, {
         headers: {
           'Authorization': `Bearer ${ACCESS_TOKEN}`
         }
