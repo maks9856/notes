@@ -1,0 +1,51 @@
+.notes-create-container {
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+    position: relative;
+    align-items: flex-start;
+    width: 100%;
+    padding: 50px 520px 50px 500px; /* top right bottom left */
+    box-sizing: border-box;
+}
+
+
+
+.note-title,
+.note-content {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    padding-left: 8px;
+    padding-right: 8px;
+    box-sizing: border-box;
+    resize: none;
+    overflow: hidden; /* приховати прокрутку */
+    outline: none; /* прибрати рамку при фокусі */
+}
+.note-title:focus,
+.note-content:focus {
+    outline: none;
+    border: none;
+}
+
+.note-title {
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding-top: 3px;
+    font-size: 2em;
+    color: rgba(255, 255, 255, 0.81);
+    font-weight: 600;
+    margin: 0;
+    min-height: 1.2em; /* висота мінімального рядка */
+    line-height: 1.2;
+}
+
+.note-content {
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.81);
+    line-height: 24px;
+    min-height: 100px;
+}

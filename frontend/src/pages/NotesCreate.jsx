@@ -1,25 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import { ACCESS_TOKEN } from "../constants";
 import { useOutletContext } from "react-router-dom";
+import '../styles/NotesCreate.css';
 export default function NotesCreate() {
   const { fetchNotes } = useOutletContext();
   const { uuid } = useParams();
   const [note, setNote] = useState({ title: "", content: "" });
   const [loading, setLoading] = useState(false);
-  
+  const titleRef = useRef(null);
+  const contentRef = useRef(null);
+
   useEffect(() => {
     if (!uuid) return;
 
     const currentStorageKey = `note_exists_${uuid}`;
     const allKeys = Object.keys(localStorage).filter(key => key.startsWith('note_exists_'));
-    const previousKey = allKeys.find(key => key !== currentStorageKey);
-     const deleteOldNote = async () => {
-      if (previousKey) {
-        localStorage.removeItem(previousKey);
-      }
+
+    const deleteOldNotes = () => {
+      allKeys
+        .filter(key => key !== currentStorageKey)
+        .forEach(key => localStorage.removeItem(key));
     };
+
     const noteExists = localStorage.getItem(currentStorageKey);
 
     if (noteExists) {
@@ -27,70 +31,100 @@ export default function NotesCreate() {
         headers: {
           'Authorization': `Bearer ${ACCESS_TOKEN}`
         }
+      })
+      .then((res) => {
+        setNote(res.data);
+        setLoading(true);
+      })
+      .catch(() => {});
+    } else {
+      deleteOldNotes();
+
+      api.post('/notes-api/notes/', {
+        title: '',
+        content: '',
+        uuid
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ACCESS_TOKEN}`
+        }
       }).then((res) => {
         setNote(res.data);
         setLoading(true);
-      }).catch(() => {
-      });
-    } else {
-      deleteOldNote().then(()=>{ api.post('/notes-api/notes/', {
-            title: '',
-            content: '',
-            uuid
-          }, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${ACCESS_TOKEN}`
-            }
-          }).then((res) => {
-            setNote(res.data);
-            setLoading(true);
-            fetchNotes();
-            noteExists=localStorage.setItem(`note_exists_${uuid}`,'true');
-          }).catch(() => {
-          });}) 
+        fetchNotes();
+        localStorage.setItem(currentStorageKey, 'true');
+      }).catch(() => {});
     }
   }, [uuid]);
 
   useEffect(() => {
-  if (!loading) return;
+    if (!loading) return;
 
-  const timeout = setTimeout(() => {
-    api.put(`/notes-api/notes/${uuid}/`, note, {
-      headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`
-      }
-    })
-    .then(() => fetchNotes())
-    .catch(() => {});
-  }, 500);
+    const prevTitle = document.title;
+    document.title = note.title || 'Нова нотатка';
 
-  return () => clearTimeout(timeout);
-}, [note.title, note.content, uuid, loading]);
+    const timeout = setTimeout(() => {
+      api.put(`/notes-api/notes/${uuid}/`, note, {
+        headers: {
+          'Authorization': `Bearer ${ACCESS_TOKEN}`
+        }
+      })
+      .then(() => fetchNotes())
+      .catch(() => {});
+    }, 500);
 
+    return () => {
+      clearTimeout(timeout);
+      document.title = prevTitle;
+    };
+  }, [note.title, note.content, uuid, loading]);
 
   useEffect(() => {
+  if (titleRef.current) {
+    titleRef.current.style.height = "auto";
+    titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
+  }
 
-    const previousTitle = document.title;
-    document.title = note.title || 'Нова нотатка';
-    return () => {
-      document.title = previousTitle;
-    };
-  }, [note.title]);
-
+  if (contentRef.current) {
+    contentRef.current.style.height = "auto";
+    contentRef.current.style.height = `${contentRef.current.scrollHeight}px`;
+  }
+}, [note.title, note.content]);
 
   if (!loading) return <p>Завантаження...</p>;
 
   return (
-    <>
-      <input
-        value={note.title}
-        onChange={(e) => setNote({ ...note, title: e.target.value })}
-      />
+    <div className="notes-create-container">
+      
       <textarea
+        className="note-title"
+        ref={titleRef}
+        value={note.title}
+        onChange={(e) => {
+          setNote({ ...note, title: e.target.value });
+
+          e.target.style.height = 'auto'; // Скидання
+          e.target.style.height = `${e.target.scrollHeight}px`;
+        }}
+        placeholder="Заголовок"
+        rows={1}
+        />
+
+      
+      <textarea
+        className="note-content"
+        ref={contentRef}
         value={note.content}
-        onChange={(e) => setNote({ ...note, content: e.target.value })}
+        onChange={(e) => {
+          setNote(
+            { ...note, content: e.target.value })
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
+        placeholder="Текст нотатки"
       />
-    </>
+     
+    </div>
   );
 }

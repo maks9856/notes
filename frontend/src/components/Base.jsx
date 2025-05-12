@@ -49,9 +49,11 @@ useEffect(() => {
             </ul>
 
             <h1>Private</h1>
-             <ul>
+              <ul>
                 {notes.map((note) => (
-                  <li key={note.id}>{note.title}</li>
+                  <li key={note.id}>
+                    {note.title.length > 15 ? note.title.slice(0, 15) + '…' : note.title}
+                  </li>
                 ))}
               </ul>
 
