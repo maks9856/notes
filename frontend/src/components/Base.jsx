@@ -52,7 +52,9 @@ useEffect(() => {
               <ul>
                 {notes.map((note) => (
                   <li key={note.id}>
+                    <Link to={`/notes/${note.uuid}`}>
                     {note.title.length > 15 ? note.title.slice(0, 15) + '…' : note.title}
+                    </Link>
                   </li>
                 ))}
               </ul>

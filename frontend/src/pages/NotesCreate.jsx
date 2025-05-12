@@ -12,51 +12,19 @@ export default function NotesCreate() {
   const titleRef = useRef(null);
   const contentRef = useRef(null);
 
-  useEffect(() => {
-    if (!uuid) return;
-
-    const currentStorageKey = `note_exists_${uuid}`;
-    const allKeys = Object.keys(localStorage).filter(key => key.startsWith('note_exists_'));
-
-    const deleteOldNotes = () => {
-      allKeys
-        .filter(key => key !== currentStorageKey)
-        .forEach(key => localStorage.removeItem(key));
-    };
-
-    const noteExists = localStorage.getItem(currentStorageKey);
-
-    if (noteExists) {
-      api.get(`/notes-api/notes/${uuid}/`, {
-        headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
-        }
-      })
-      .then((res) => {
-        setNote(res.data);
-        setLoading(true);
-      })
-      .catch(() => {});
-    } else {
-      deleteOldNotes();
-
-      api.post('/notes-api/notes/', {
-        title: '',
-        content: '',
-        uuid
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
-        }
+  useEffect(()=>{
+    if(!uuid)return;
+    api.post(`/notes-api/notes/${uuid}/`,{},{
+        headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
       }).then((res) => {
         setNote(res.data);
         setLoading(true);
         fetchNotes();
-        localStorage.setItem(currentStorageKey, 'true');
-      }).catch(() => {});
-    }
-  }, [uuid]);
+      })
+      .catch((err) => {
+        console.error("Помилка завантаження нотатки:", err);
+      });
+  },[uuid])
 
   useEffect(() => {
     if (!loading) return;
