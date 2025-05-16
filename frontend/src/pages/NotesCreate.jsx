@@ -1,24 +1,46 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
-import { useOutletContext } from "react-router-dom";
+import { useParams, useOutletContext } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import api from "../api";
 import { ACCESS_TOKEN } from "../constants";
 import "../styles/NotesCreate.css";
-import "../styles/Tiptap.css"
+import "../styles/Tiptap.css";
+
 export default function NotesCreate() {
   const { fetchNotes } = useOutletContext();
   const { uuid } = useParams();
+
   const [note, setNote] = useState({ title: "", content: "" });
   const [loading, setLoading] = useState(false);
+  const [slashCommandOpen, setSlashCommandOpen] = useState(false);
+  const [slashCommandPosition, setSlashCommandPosition] = useState({ x: 0, y: 0 });
+
   const titleRef = useRef(null);
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: note.content || '',
+    content: note.content || "",
     onUpdate: ({ editor }) => {
       setNote(prev => ({ ...prev, content: editor.getHTML() }));
+    },
+    onCreate: ({ editor }) => {
+      editor.view.dom.addEventListener("keydown", event => {
+        if (event.key === "/") {
+          const { from } = editor.state.selection;
+          const coords = editor.view.coordsAtPos(from);
+          const editorRect = editor.view.dom.parentElement.getBoundingClientRect();
+
+          setSlashCommandPosition({
+            x: coords.left - editorRect.left,
+            y: coords.bottom - editorRect.top+30,
+          });
+
+          setSlashCommandOpen(true);
+        } else {
+          setSlashCommandOpen(false);
+        }
+      });
     },
   });
 
@@ -32,14 +54,12 @@ export default function NotesCreate() {
       }, {
         headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
       })
-      .then((res) => {
+      .then(res => {
         setNote(res.data);
         setLoading(true);
         fetchNotes();
       })
-      .catch((err) => {
-        console.error("Помилка завантаження нотатки:", err);
-      });
+      .catch(err => console.error("Помилка завантаження нотатки:", err));
   }, [uuid]);
 
   useEffect(() => {
@@ -54,11 +74,9 @@ export default function NotesCreate() {
           ...note,
           title: note.title || "Нова нотатка",
         }, {
-          headers: {
-            Authorization: `Bearer ${ACCESS_TOKEN}`,
-          },
+          headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
         })
-        .then(() => fetchNotes())
+        .then(fetchNotes)
         .catch(() => {});
     }, 500);
 
@@ -70,25 +88,61 @@ export default function NotesCreate() {
 
   useEffect(() => {
     if (editor && note.content !== editor.getHTML()) {
-      editor.commands.setContent(note.content || '');
+      editor.commands.setContent(note.content || "");
     }
   }, [note.content, uuid, editor]);
+
+  const insertCommand = type => {
+    if (!editor) return;
+
+    switch (type) {
+      case "Заголовок":
+        editor.commands.setNode("heading", { level: 2 });
+        break;
+      case "Список":
+        editor.commands.toggleBulletList();
+        break;
+      case "Цитата":
+        editor.commands.setBlockquote();
+        break;
+      default:
+        break;
+    }
+
+    setSlashCommandOpen(false);
+  };
 
   if (!loading) return <p>Завантаження...</p>;
 
   return (
-    <div className="notes-create-container hide-scrollbar ">
+    <div className="notes-create-container hide-scrollbar">
       <textarea
-        className="note-title hide-scrollbar "
         ref={titleRef}
+        className="note-title hide-scrollbar"
         value={note.title}
-        onChange={(e) =>
-          setNote({ ...note, title: e.target.value })
-        }
+        onChange={e => setNote({ ...note, title: e.target.value })}
         placeholder="Заголовок"
         rows={1}
       />
-      <EditorContent editor={editor} className="note-content" />
+
+      <div className="note-content">
+        <EditorContent editor={editor} className="note-editor" />
+
+        {slashCommandOpen && (
+          <div
+            className="slash-menu"
+            style={{
+              position: "absolute",
+              left: slashCommandPosition.x,
+              top: slashCommandPosition.y,
+            }}
+          >
+            <div onClick={() => insertCommand("Заголовок")}>Заголовок</div>
+            <div onClick={() => insertCommand("Список")}>Список</div>
+            <div onClick={() => insertCommand("Цитата")}>Цитата</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
