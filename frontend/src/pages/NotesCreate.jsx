@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from '@tiptap/extension-image'
 import api from "../api";
 import { ACCESS_TOKEN } from "../constants";
 import "../styles/NotesCreate.css";
@@ -16,10 +17,18 @@ export default function NotesCreate() {
   const [slashCommandOpen, setSlashCommandOpen] = useState(false);
   const [slashCommandPosition, setSlashCommandPosition] = useState({ x: 0, y: 0 });
 
+  const [imageMenuOpen,setimageMenuOpen]=useState(false);
+  const [imageMenuPosition,setimageMenuPosition]=useState({x:0,y:0});
+  const [imageMode, setImageMode] = useState("url");
+  const [imageUrl, setImageUrl] = useState("");
+
   const titleRef = useRef(null);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Image,
+    ],
     content: note.content || "",
     onUpdate: ({ editor }) => {
       setNote(prev => ({ ...prev, content: editor.getHTML() }));
@@ -35,6 +44,10 @@ export default function NotesCreate() {
             x: coords.left - editorRect.left,
             y: coords.bottom - editorRect.top+30,
           });
+          setimageMenuPosition({
+            x: coords.left - editorRect.left,
+            y: coords.bottom - editorRect.top+30,
+          })
 
           setSlashCommandOpen(true);
         } else {
@@ -96,15 +109,29 @@ export default function NotesCreate() {
     if (!editor) return;
 
     switch (type) {
-      case "Заголовок":
+      case "Heading 1":
+        editor.commands.setNode("heading", { level: 1 });
+        break;
+      case "Heading 2":
         editor.commands.setNode("heading", { level: 2 });
         break;
-      case "Список":
+      case "Heading 3":
+        editor.commands.setNode("heading", { level: 3 });
+        break;
+      case "Heading 4":
+        editor.commands.setNode("heading", { level: 4 });
+        break;
+      case "Bullet list":
         editor.commands.toggleBulletList();
         break;
       case "Цитата":
         editor.commands.setBlockquote();
         break;
+      case "Image":
+        setSlashCommandOpen(false);
+        setimageMenuOpen(true);
+        break;
+        
       default:
         break;
     }
@@ -137,9 +164,70 @@ export default function NotesCreate() {
               top: slashCommandPosition.y,
             }}
           >
-            <div onClick={() => insertCommand("Заголовок")}>Заголовок</div>
-            <div onClick={() => insertCommand("Список")}>Список</div>
+            <div onClick={() => insertCommand("Heading 1")}>Heading 1</div>
+            <div onClick={() => insertCommand("Heading 2")}>Heading 2</div>
+            <div onClick={() => insertCommand("Heading 3")}>Heading 3</div>
+            <div onClick={() => insertCommand("Heading 4")}>Heading 4</div>
+            <div onClick={() => insertCommand("Bullet list")}>Bullet list</div>
             <div onClick={() => insertCommand("Цитата")}>Цитата</div>
+            <div onClick={() => insertCommand("Image")}>Image</div>
+            
+          </div>
+        )}
+        {imageMenuOpen&&(
+          <div className="image-menu"
+          style={{
+            position:"absolute",
+            left:imageMenuPosition.x,
+            top:imageMenuPosition.y}}>
+              <div style={{ marginBottom: "8px" }}>
+                <button onClick={() => setImageMode("url")} disabled={imageMode === "url"}>
+                З URL
+                </button>
+                <button onClick={() => setImageMode("upload")} disabled={imageMode === "upload"}>
+                З ПК
+                </button>
+              </div>
+            {imageMode==="url"?(<>
+              <input type='text' 
+                placeholder="http://..." 
+                value={imageUrl}
+                onChange={(e)=>setImageUrl(e.target.value)}
+                onKeyDown={(e)=>{
+                  if(e.key==="Enter"&&imageUrl&&editor){
+                    editor.commands.setImage({src:imageUrl});
+                    setimageMenuOpen(false);
+                    setImageUrl('');
+                  }
+                  }}
+                onBlur={(e)=>{
+                  if(imageUrl&&editor){
+                    editor.commands.setImage({src:imageUrl});
+                    setimageMenuOpen(false);
+                    setImageUrl('');
+                  }
+                }}  >
+                
+              </input>
+            </>):
+            (<>
+            <input type='file'
+            accept="image/*"
+            onChange={(e)=>{
+              const file =e.target.files[0];
+              if(!file) return;
+              const reader = new FileReader();
+              reader.onloadend=()=>{
+                if(editor){
+                  editor.commands.setImage({src:reader.result});
+                  setimageMenuOpen(false);
+                };
+              };
+              reader.readAsDataURL(file);
+            }}
+            >
+            </input>
+            </>)}
           </div>
         )}
       </div>
