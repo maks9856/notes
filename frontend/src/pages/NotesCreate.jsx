@@ -7,6 +7,7 @@ import api from "../api";
 import { ACCESS_TOKEN } from "../constants";
 import "../styles/NotesCreate.css";
 import "../styles/Tiptap.css";
+import { createPortal } from "react-dom";
 
 export default function NotesCreate() {
   const { fetchNotes } = useOutletContext();
@@ -41,8 +42,8 @@ export default function NotesCreate() {
           const editorRect = editor.view.dom.parentElement.getBoundingClientRect();
 
           setSlashCommandPosition({
-            x: coords.left - editorRect.left,
-            y: coords.bottom - editorRect.top+30,
+            x: coords.left - editorRect.left+700,
+            y: coords.bottom - editorRect.top+160,
           });
           setimageMenuPosition({
             x: coords.left - editorRect.left,
@@ -105,6 +106,16 @@ export default function NotesCreate() {
     }
   }, [note.content, uuid, editor]);
 
+  useEffect(()=>{
+    const handlekeyDown=(e)=>{
+      if (e.key === "Escape") {
+      setSlashCommandOpen(false);
+    }
+    }
+    document.addEventListener("keydown", handlekeyDown);
+    return () => document.removeEventListener("keydown", handlekeyDown);
+  },[])
+
   const insertCommand = type => {
     if (!editor) return;
 
@@ -155,25 +166,42 @@ export default function NotesCreate() {
       <div className="note-content">
         <EditorContent editor={editor} className="note-editor" />
 
-        {slashCommandOpen && (
-          <div
-            className="slash-menu"
-            style={{
-              position: "absolute",
-              left: slashCommandPosition.x,
-              top: slashCommandPosition.y,
-            }}
-          >
-            <div onClick={() => insertCommand("Heading 1")}>Heading 1</div>
-            <div onClick={() => insertCommand("Heading 2")}>Heading 2</div>
-            <div onClick={() => insertCommand("Heading 3")}>Heading 3</div>
-            <div onClick={() => insertCommand("Heading 4")}>Heading 4</div>
-            <div onClick={() => insertCommand("Bullet list")}>Bullet list</div>
-            <div onClick={() => insertCommand("Цитата")}>Цитата</div>
-            <div onClick={() => insertCommand("Image")}>Image</div>
-            
-          </div>
-        )}
+        {slashCommandOpen && createPortal(
+  <div
+    className="slash-menu"
+    style={{
+      position: "absolute",
+      left: slashCommandPosition.x,
+      top: slashCommandPosition.y,
+    }}
+  >
+    <div className="slash-menu-content">
+      <div className="slash-menu-scroll">
+        <div className="slash-menu-group">
+          <div className="slash-menu-group-title">Основні</div>
+          <div onClick={() => insertCommand("Heading 1")}>Heading 1</div>
+          <div onClick={() => insertCommand("Heading 2")}>Heading 2</div>
+          <div onClick={() => insertCommand("Heading 3")}>Heading 3</div>
+          <div onClick={() => insertCommand("Heading 4")}>Heading 4</div>
+          <div onClick={() => insertCommand("Bullet list")}>Bullet list</div>
+          <div onClick={() => insertCommand("Цитата")}>Цитата</div>
+        </div>
+        <div className="slash-menu-group">
+          <div className="slash-menu-group-title">Медіа</div>
+          <div onClick={() => insertCommand("Image")}>Image</div>
+          <div onClick={() => insertCommand("Video")}>Video</div>
+        </div>
+      </div>
+
+      <div className="slash-menu-footer" onClick={() => setSlashCommandOpen(false)}>
+        Натисни ESC
+      </div>
+    </div>
+  </div>,
+  document.body
+)}
+
+
         {imageMenuOpen&&(
           <div className="image-menu"
           style={{

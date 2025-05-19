@@ -8,6 +8,7 @@
   padding: 48px 16px;
   box-sizing: border-box;
   z-index: 1;
+  overflow: visible;
 }
 
 .note-title {
@@ -34,6 +35,7 @@
 
 .note-content {
   position: relative;
+  overflow: visible;
 }
 
 .note-editor {
@@ -45,17 +47,66 @@
 }
 
 .slash-menu {
+  width: 240px;
+  max-height: 30vh;
   background-color: #252525;
   border: 1px solid #252525;
   border-radius: 8px;
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;   
   z-index: 1000;
 }
-.slash-menu div {
-  padding: 4px 8px;
+
+.slash-menu-content {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;    /* забезпечує повну висоту контейнера */
+  min-height: 0;   /* дозволяє flex-елементам правильно скролитися */
+  flex: 1;         /* розтягує по висоті, якщо потрібно */
+}
+
+
+.slash-menu-scroll {
+  flex: 1;                
+  overflow-y: auto;       
+  min-height: 0;          
+  overscroll-behavior: contain;
+}
+
+.slash-menu-group {
+  padding: 8px 0;
+}
+
+.slash-menu-group > div:not(.slash-menu-group-title):hover {
+  background-color: #292929;
+  border-radius: 8px;
+}
+
+.slash-menu-group-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  color: #666;
+  background-color: transparent;
+  text-align: left;
+}
+
+.slash-menu-scroll div {
+  padding: 8px 12px;
   cursor: pointer;
 }
-.slash-menu div:hover {
-  background-color: #303030;
-  border-radius: 8px;
+
+.slash-menu-footer {
+  flex-shrink: 0;         
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: bold;
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+  cursor: pointer;
+  position: sticky;     
+  bottom: 0;
+  z-index: 3;
 }
