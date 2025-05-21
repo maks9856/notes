@@ -7,7 +7,9 @@ import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
-
+import { faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons";
+import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { useEffect, useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
@@ -16,9 +18,11 @@ import { v4 as uuidv4 } from "uuid";
 export default function Base() {
   const { user, loading } = useUser();
   const [notes, setNotes] = useState([]);
-  const [notesUuid,setNotesUuid]=useState(null)
-  const [noteTitle,setNoteTitle]=useState('')
+  const [noteTitle, setNoteTitle] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
   const { pathname } = useLocation();
+  const [selectedNoteUuid, setSelectedNoteUuid] = useState("");
+
   const navigate = useNavigate();
 
   const handleCreateNote = () => {
@@ -35,16 +39,40 @@ export default function Base() {
   useEffect(() => {
     fetchNotes();
   }, []);
-  useEffect(()=>{
+  useEffect(() => {
     const uuidFromPath = pathname.split("/").at(-1);
     const found = notes.find((note) => note.uuid === uuidFromPath);
-    if (found){
+    if (found) {
       setNoteTitle(found.title);
-    } 
-    else setNoteTitle("");
-    
-  },[pathname, notes])
+      setIsFavorite(found.is_favorite);
+      setSelectedNoteUuid(found.uuid);
+    } else {
+      setNoteTitle("");
+      setSelectedNoteUuid("");
+    }
+  }, [pathname, notes]);
 
+  const toggleFavorite = async () => {
+    if (!selectedNoteUuid) return;
+    try {
+      await api
+        .get(`/notes-api/notes/${selectedNoteUuid}/`)
+        .then((res) => {
+          setIsFavorite(res.data);
+        })
+        .catch((err) => console.error(err));
+    } catch (error) {}
+    try {
+      const updatedValue = !isFavorite;
+      await api.put(`/notes-api/notes/${selectedNoteUuid}/`, {
+        is_favorite: updatedValue,
+      });
+      setIsFavorite(updatedValue);
+      fetchNotes();
+    } catch (error) {
+      console.error("Failed to update favorite status", error);
+    }
+  };
 
   if (loading) return;
   if (!user) return;
@@ -117,7 +145,17 @@ export default function Base() {
       </nav>
       <div className="div-content">
         <header className="header-notes-container">
-          <h2>{noteTitle}</h2>
+          <h2 className="header-notes-title">
+            {noteTitle.length > 25 ? noteTitle.slice(0, 25) + "…" : noteTitle}
+          </h2>
+          <div className="header-note-icons">
+            <FontAwesomeIcon icon={faClockRotateLeft} />
+            <FontAwesomeIcon
+              icon={isFavorite ? faStarSolid : faStarRegular}
+              onClick={toggleFavorite}
+              style={{ cursor: "pointer", color: isFavorite ? "gold" : "gray" }}
+            />
+          </div>
         </header>
         <main className="main-notes-container">
           <Outlet context={{ fetchNotes }} />

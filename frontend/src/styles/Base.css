@@ -89,7 +89,7 @@
   justify-content: space-between;
   padding: 1rem;
   height: 100%;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   font-size: 0.95rem;
   color: white;
 }
@@ -110,14 +110,14 @@
 }
 
 .notes-sidebar-menu li {
-  display: flex;             
-  width: 100%; 
+  display: flex;
+  width: 100%;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   color: #ddd;
   cursor: pointer;
   transition: background-color 0.2s;
-  box-sizing: border-box; 
+  box-sizing: border-box;
   align-items: center;
 }
 
@@ -139,8 +139,23 @@
   gap: 0.9rem;
   align-items: center;
 }
-.note-sidebar-icon:hover{
+.note-sidebar-icon:hover {
   background-color: rgb(70, 70, 70);
   padding: 2px;
   border-radius: 2px;
+}
+.header-notes-title {
+  display: flex;
+  background-color: transparent;
+  color: #ffffff;
+  margin: 0 auto 0 0;
+  padding: 0px 0px 0px 40px;
+}
+.header-note-icons {
+  margin: 0px 40px 0 0;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  vertical-align: bottom;
+  font-size: 22px;
 }
