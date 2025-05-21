@@ -110,11 +110,15 @@
 }
 
 .notes-sidebar-menu li {
+  display: flex;             
+  width: 100%; 
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   color: #ddd;
   cursor: pointer;
   transition: background-color 0.2s;
+  box-sizing: border-box; 
+  align-items: center;
 }
 
 .notes-sidebar-menu li:hover {
@@ -129,4 +133,14 @@
 .notes-sidebar-menu .bottom-list {
   margin-top: auto;
 }
-
+.icons-wrapper {
+  margin-left: auto;
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+.note-sidebar-icon:hover{
+  background-color: rgb(70, 70, 70);
+  padding: 2px;
+  border-radius: 2px;
+}

@@ -129,10 +129,21 @@ export default function NotesCreate() {
 
   const insertCommand = (type) => {
     if (!editor) return;
+    const { state, commands } = editor;
+    const { from } = state.selection;
 
+    const textBefore = state.doc.textBetween(from - 1, from, "\n", "\n");
+
+    if (textBefore === "/") {
+      commands.command(({ tr }) => {
+        tr.delete(from - 1, from);
+        return true;
+      });
+    }
     switch (type) {
       case "Heading 1":
         editor.commands.setNode("heading", { level: 1 });
+
         break;
       case "Heading 2":
         editor.commands.setNode("heading", { level: 2 });
@@ -157,7 +168,6 @@ export default function NotesCreate() {
       default:
         break;
     }
-
     setSlashCommandOpen(false);
   };
 
@@ -211,7 +221,6 @@ export default function NotesCreate() {
                   <div className="slash-menu-group">
                     <div className="slash-menu-group-title">Медіа</div>
                     <div onClick={() => insertCommand("Image")}>Image</div>
-                    <div onClick={() => insertCommand("Video")}>Video</div>
                   </div>
                 </div>
 
