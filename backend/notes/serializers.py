@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Note, Tag
+from .models import Note, Tag, NoteVersion
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,7 +18,12 @@ class NoteSerializer(serializers.ModelSerializer):
             'uuid': {'required': False, 'read_only': False},
         }
 
-        
+class NoteVersionSerializer(serializers.ModelSerializer):
+    edited_by = serializers.StringRelatedField(read_only=True)
+    class Meta:
+        model = NoteVersion
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at', 'edited_by']
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag

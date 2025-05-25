@@ -21,7 +21,18 @@ class Note(models.Model):
     class Meta:
         ordering = ['-created_at']
         
-        
+class NoteVersion(models.Model):
+    note= models.ForeignKey(Note, on_delete=models.CASCADE, related_name='versions')
+    title= models.CharField(max_length=255,default='New title',blank=True)
+    content = models.TextField(default='',blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    edited_by = models.ForeignKey(CustomUser, null=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+            
     
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
