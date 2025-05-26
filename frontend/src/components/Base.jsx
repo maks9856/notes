@@ -1,19 +1,20 @@
-import { Outlet } from "react-router-dom";
-import { Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPen,
+  faEllipsis,
+  faPlus,
+  faArrowDown,
+  faClockRotateLeft,
+  faStar as faStarSolid,
+} from "@fortawesome/free-solid-svg-icons";
+import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
+import { v4 as uuidv4, validate as validateUUID } from "uuid";
+
 import "../styles/Base.css";
 import useUser from "../hooks/useUser";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen } from "@fortawesome/free-solid-svg-icons";
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
-import { faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
-import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons";
-import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
-import { useEffect, useState } from "react";
 import api from "../api";
-import { useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Base() {
   const { user, loading } = useUser();
@@ -21,14 +22,19 @@ export default function Base() {
   const [noteTitle, setNoteTitle] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const { pathname } = useLocation();
+  const lastPathSegment = pathname.split("/").at(-1);
+  const isUuidInPath = validateUUID(lastPathSegment);
   const [selectedNoteUuid, setSelectedNoteUuid] = useState("");
-
+  const [openSelectVersionNote, setOpenSelectVersionNote] = useState(false);
+  const clockButtonRef = useRef(null);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
   const navigate = useNavigate();
 
   const handleCreateNote = () => {
     const newNoteId = uuidv4();
     navigate(`/notes/${newNoteId}`);
   };
+
   const fetchNotes = () => {
     api
       .get("/notes-api/notes/")
@@ -39,6 +45,7 @@ export default function Base() {
   useEffect(() => {
     fetchNotes();
   }, []);
+
   useEffect(() => {
     const uuidFromPath = pathname.split("/").at(-1);
     const found = notes.find((note) => note.uuid === uuidFromPath);
@@ -55,14 +62,6 @@ export default function Base() {
   const toggleFavorite = async () => {
     if (!selectedNoteUuid) return;
     try {
-      await api
-        .get(`/notes-api/notes/${selectedNoteUuid}/`)
-        .then((res) => {
-          setIsFavorite(res.data);
-        })
-        .catch((err) => console.error(err));
-    } catch (error) {}
-    try {
       const updatedValue = !isFavorite;
       await api.put(`/notes-api/notes/${selectedNoteUuid}/`, {
         is_favorite: updatedValue,
@@ -74,8 +73,20 @@ export default function Base() {
     }
   };
 
+  const handleClockButtonClick = () => {
+    if (clockButtonRef.current) {
+      const rect = clockButtonRef.current.getBoundingClientRect();
+      setPopoverPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+    }
+    setOpenSelectVersionNote(true);
+  };
+
   if (loading) return;
   if (!user) return;
+
   return (
     <div className="container">
       <nav className="sidebar-container">
@@ -108,23 +119,17 @@ export default function Base() {
                   <FontAwesomeIcon
                     icon={faArrowDown}
                     className="note-sidebar-icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <FontAwesomeIcon
                     icon={faEllipsis}
                     className="note-sidebar-icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <FontAwesomeIcon
-                    className="note-sidebar-icon"
                     icon={faPlus}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    className="note-sidebar-icon"
+                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </li>
@@ -143,24 +148,55 @@ export default function Base() {
           </ul>
         </div>
       </nav>
+
       <div className="div-content">
-        <header className="header-notes-container">
-          <h2 className="header-notes-title">
-            {noteTitle.length > 25 ? noteTitle.slice(0, 25) + "…" : noteTitle}
-          </h2>
-          <div className="header-note-icons">
-            <FontAwesomeIcon icon={faClockRotateLeft} />
-            <FontAwesomeIcon
-              icon={isFavorite ? faStarSolid : faStarRegular}
-              onClick={toggleFavorite}
-              style={{ cursor: "pointer", color: isFavorite ? "gold" : "gray" }}
-            />
-          </div>
-        </header>
+        {isUuidInPath && (
+          <header className="header-notes-container">
+            <h2 className="header-notes-title">
+              {noteTitle.length > 25 ? noteTitle.slice(0, 25) + "…" : noteTitle}
+            </h2>
+            <div className="header-note-icons">
+              <FontAwesomeIcon
+                icon={faClockRotateLeft}
+                ref={clockButtonRef}
+                onClick={handleClockButtonClick}
+                style={{ cursor: "pointer" }}
+              />
+              <FontAwesomeIcon
+                icon={isFavorite ? faStarSolid : faStarRegular}
+                onClick={toggleFavorite}
+                style={{
+                  cursor: "pointer",
+                  color: isFavorite ? "gold" : "gray",
+                }}
+              />
+            </div>
+          </header>
+        )}
+
         <main className="main-notes-container">
           <Outlet context={{ fetchNotes }} />
         </main>
       </div>
+
+      {openSelectVersionNote && (
+        <div
+          className="popover-version-window"
+          style={{
+            top: popoverPosition.top,
+            left: popoverPosition.left,
+          }}
+        >
+          <h4>Версії нотатки</h4>
+          <ul>
+            <li>Версія 1 – 2024-05-01</li>
+            <li>Версія 2 – 2024-05-03</li>
+          </ul>
+          <button onClick={() => setOpenSelectVersionNote(false)}>
+            Закрити
+          </button>
+        </div>
+      )}
     </div>
   );
 }

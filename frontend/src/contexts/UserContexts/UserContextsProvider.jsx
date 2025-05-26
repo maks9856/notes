@@ -17,7 +17,7 @@ const UserContextProvider = ({ children }) => {
       try {
         const res = await api.get('api/user/me', {
           headers: {
-            Authorization: `Bearer ${ACCESS_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         setUser(res.data);
