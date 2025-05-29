@@ -38,17 +38,11 @@ class NoteGetorCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
     def put(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
-        old_content = note.content
+        
         
         serializer = NoteSerializer(note, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        new_content = serializer.validated_data.get('content')
-        if new_content is not None and new_content != old_content:
-            NoteVersion.objects.create(
-                note=note,
-                content=old_content,
-                edited_by=request.user
-            )
+        
         serializer.save()
         return Response(serializer.data)
     def delete(self, request, uuid):

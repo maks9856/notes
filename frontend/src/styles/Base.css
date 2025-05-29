@@ -46,7 +46,6 @@
   flex-direction: column;
   background: rgb(25, 25, 25);
   z-index: 1;
-  height: 100vh;
   position: relative;
   opacity: 1;
   transform: translateX(0px);
@@ -164,7 +163,9 @@
   background-color: rgba(0,0,0,0.4);
   display: flex;
   justify-content: center;
+  width: 300px;
   align-items: center;
+  flex-direction: column;
   z-index: 1000;
   border: 1px solid transparent;
   border-radius: 8px;

@@ -19,6 +19,7 @@ social-auth-app-django = "*"
 django-oauth-toolkit = "*"
 djangorestframework-simplejwt = "*"
 unidecode = "*"
+redis = "*"
 
 [dev-packages]
 

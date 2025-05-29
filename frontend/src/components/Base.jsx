@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPen,
@@ -28,6 +28,7 @@ export default function Base() {
   const [openSelectVersionNote, setOpenSelectVersionNote] = useState(false);
   const clockButtonRef = useRef(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const [noteVersions, setNoteVersions] = useState([]);
   const navigate = useNavigate();
 
   const handleCreateNote = () => {
@@ -45,7 +46,19 @@ export default function Base() {
   useEffect(() => {
     fetchNotes();
   }, []);
-
+  const fetchNoteVersions = (uuid) => {
+    api
+      .get(`/notes-api/notes/${uuid}/versions/`)
+      .then((res) => {
+        setNoteVersions(res.data);
+      })
+      .catch((err) => console.error(err));
+  };
+  useEffect(() => {
+    if (isUuidInPath && selectedNoteUuid) {
+      fetchNoteVersions(selectedNoteUuid);
+    }
+  }, [isUuidInPath, selectedNoteUuid]);
   useEffect(() => {
     const uuidFromPath = pathname.split("/").at(-1);
     const found = notes.find((note) => note.uuid === uuidFromPath);
@@ -183,14 +196,26 @@ export default function Base() {
         <div
           className="popover-version-window"
           style={{
-            top: popoverPosition.top,
-            left: popoverPosition.left,
+            top: popoverPosition.top+10,
+            left: popoverPosition.left- 220,
           }}
         >
           <h4>Версії нотатки</h4>
           <ul>
-            <li>Версія 1 – 2024-05-01</li>
-            <li>Версія 2 – 2024-05-03</li>
+            {noteVersions.map((version) => (
+              <li
+                key={version.id}
+                onClick={() => {
+                  navigate(`/notes/${selectedNoteUuid}/versions/${version.id}`);
+                  setOpenSelectVersionNote(false);
+                }}
+              >
+                {new Date(version.created_at).toLocaleDateString()} -{" "}
+                {version.title.length > 20
+                  ? version.title.slice(0, 20) + "…"
+                  : version.title}
+              </li>
+            ))}
           </ul>
           <button onClick={() => setOpenSelectVersionNote(false)}>
             Закрити
