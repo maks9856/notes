@@ -20,6 +20,7 @@ django-oauth-toolkit = "*"
 djangorestframework-simplejwt = "*"
 unidecode = "*"
 redis = "*"
+django-redis = "*"
 
 [dev-packages]
 
