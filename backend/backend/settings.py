@@ -86,6 +86,8 @@ INSTALLED_APPS = [
     'social_django',
     'drf_social_oauth2',
     
+    'django_celery_results',
+    "django_celery_beat",
    
 ]
 
@@ -221,9 +223,16 @@ DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/0",
+        "LOCATION": "redis://redis:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
+
+CELERY_BROKER_URL = 'redis://redis:6379/1'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
+CELERY_TIMEZONE = 'UTC'
+CELERY_RESULT_EXTENDED = True
+CELERY_TASK_TRACK_STARTED = True
+

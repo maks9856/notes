@@ -9,7 +9,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .djnago_redis import cache_note , get_cached_note
 from django.core.cache import cache
-
+from django.utils.timezone import now
+import json
 # Create your views here.
 class NoteListView(APIView):
     serializer_class = NoteSerializer
@@ -22,7 +23,7 @@ class NoteListView(APIView):
             notes_queryset = Note.objects.filter(author=request.user)
             serializer = NoteSerializer(notes_queryset, many=True)
             notes = serializer.data
-            cache.set(cache_key, notes, timeout=60 * 5)
+            cache.set(cache_key, notes, timeout=60 * 10)
         return Response(notes)
 
 
@@ -50,7 +51,14 @@ class NoteGetorCreateView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        cache_note(request.user.id, uuid, serializer.data)
+        cache_key = f"note_buffer:{note.id}"
+        cache_value = {
+            "title": serializer.validated_data.get("title", note.title),
+            "content": serializer.validated_data.get("content", note.content),
+            "user_id": request.user.id,
+            "timestamp": str(now())
+        }
+        cache.set(cache_key, json.dumps(cache_value), timeout=60 * 5)
         return Response(serializer.data)
 
     def delete(self, request, uuid):
