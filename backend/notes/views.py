@@ -33,22 +33,22 @@ class NoteGetOrCreateView(APIView):
 
     def get(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
-        print('working1')
+        
         cache_key = f"note_buffer:{note.id}"
         cached_data = cache.get(cache_key)
-        print('cached_data:', cached_data)
-        print('working2')
+        
+        
         if cached_data:
-            print('working3')
+            
             response_data = {
                 "id": note.id,
                 "uuid": str(note.uuid),
                 **cached_data
             }
-            return Response(response_data,status=status.HTTP_200_OK)
-        print('working4')
+            return Response(response_data,status=status.HTTP_206_PARTIAL_CONTENT)
+        
         serializer = NoteSerializer(note)
-        return Response(serializer.data ,status=status.HTTP_200_OK)
+        return Response(serializer.data ,status=status.HTTP_206_PARTIAL_CONTENT)
 
     def post(self, request, uuid):
         note, created = Note.objects.get_or_create(
@@ -73,7 +73,6 @@ class NoteGetOrCreateView(APIView):
         old_task_id = cache.get(task_id_key)
         if old_task_id:
             AsyncResult(old_task_id).revoke(terminate=True)
-            print(f"Old task ID revoked: {old_task_id}")
 
         
         task = save_note_from_cache.apply_async(

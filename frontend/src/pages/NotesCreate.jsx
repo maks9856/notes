@@ -16,13 +16,9 @@ export default function NotesCreate() {
   const [note, setNote] = useState({ title: "", content: "" });
   const [loading, setLoading] = useState(false);
   const [slashCommandOpen, setSlashCommandOpen] = useState(false);
-  const [slashCommandPosition, setSlashCommandPosition] = useState({
-    x: 0,
-    y: 0,
-  });
-
-  const [imageMenuOpen, setimageMenuOpen] = useState(false);
-  const [imageMenuPosition, setimageMenuPosition] = useState({ x: 0, y: 0 });
+  const [slashCommandPosition, setSlashCommandPosition] = useState({ x: 0, y: 0 });
+  const [imageMenuOpen, setImageMenuOpen] = useState(false);
+  const [imageMenuPosition, setImageMenuPosition] = useState({ x: 0, y: 0 });
   const [imageMode, setImageMode] = useState("url");
   const [imageUrl, setImageUrl] = useState("");
 
@@ -39,14 +35,10 @@ export default function NotesCreate() {
         if (event.key === "/") {
           const { from } = editor.state.selection;
           const coords = editor.view.coordsAtPos(from);
-          const editorRect =
-            editor.view.dom.parentElement.getBoundingClientRect();
+          const editorRect = editor.view.dom.parentElement.getBoundingClientRect();
 
-          setSlashCommandPosition({
-            x: coords.left,
-            y: coords.bottom,
-          });
-          setimageMenuPosition({
+          setSlashCommandPosition({ x: coords.left, y: coords.bottom });
+          setImageMenuPosition({
             x: coords.left - editorRect.left,
             y: coords.bottom - editorRect.top + 30,
           });
@@ -54,33 +46,27 @@ export default function NotesCreate() {
           setSlashCommandOpen(true);
         } else {
           setSlashCommandOpen(false);
-          setimageMenuOpen(false);
+          setImageMenuOpen(false);
         }
       });
     },
   });
 
   useEffect(() => {
-    if (!uuid) return;
+  if (!uuid) return;
 
-    api
-      .post(
-        `/notes-api/notes/${uuid}/`,
-        {
-          ...note,
-          title: note.title || "Нова нотатка",
-        },
-        {
-          headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-        }
-      )
-      .then((res) => {
-        setNote(res.data);
-        setLoading(true);
-        fetchNotes();
-      })
-      .catch((err) => console.error("Помилка завантаження нотатки:", err));
-  }, [uuid]);
+  api
+    .get(`/notes-api/notes/${uuid}/`, {
+      headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+    })
+    .then((res) => {
+      setNote(res.data);
+      setLoading(true);
+      fetchNotes();
+    })
+    .catch((err) => console.error("Помилка завантаження нотатки:", err));
+}, [uuid]);
+
 
   useEffect(() => {
     if (!loading) return;
@@ -117,14 +103,14 @@ export default function NotesCreate() {
   }, [note.content, uuid, editor]);
 
   useEffect(() => {
-    const handlekeyDown = (e) => {
+    const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         setSlashCommandOpen(false);
-        setimageMenuOpen(false);
+        setImageMenuOpen(false);
       }
     };
-    document.addEventListener("keydown", handlekeyDown);
-    return () => document.removeEventListener("keydown", handlekeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const insertCommand = (type) => {
@@ -140,10 +126,10 @@ export default function NotesCreate() {
         return true;
       });
     }
+
     switch (type) {
       case "Heading 1":
         editor.commands.setNode("heading", { level: 1 });
-
         break;
       case "Heading 2":
         editor.commands.setNode("heading", { level: 2 });
@@ -162,17 +148,14 @@ export default function NotesCreate() {
         break;
       case "Image":
         setSlashCommandOpen(false);
-        setimageMenuOpen(true);
+        setImageMenuOpen(true);
         break;
-
       default:
         break;
     }
+
     setSlashCommandOpen(false);
   };
-
-  if (!loading) return <p>Завантаження...</p>;
-
   return (
     <div className="notes-create-container hide-scrollbar">
       <textarea
@@ -201,21 +184,11 @@ export default function NotesCreate() {
                 <div className="slash-menu-scroll">
                   <div className="slash-menu-group">
                     <div className="slash-menu-group-title">Основні</div>
-                    <div onClick={() => insertCommand("Heading 1")}>
-                      Heading 1
-                    </div>
-                    <div onClick={() => insertCommand("Heading 2")}>
-                      Heading 2
-                    </div>
-                    <div onClick={() => insertCommand("Heading 3")}>
-                      Heading 3
-                    </div>
-                    <div onClick={() => insertCommand("Heading 4")}>
-                      Heading 4
-                    </div>
-                    <div onClick={() => insertCommand("Bullet list")}>
-                      Bullet list
-                    </div>
+                    <div onClick={() => insertCommand("Heading 1")}>Heading 1</div>
+                    <div onClick={() => insertCommand("Heading 2")}>Heading 2</div>
+                    <div onClick={() => insertCommand("Heading 3")}>Heading 3</div>
+                    <div onClick={() => insertCommand("Heading 4")}>Heading 4</div>
+                    <div onClick={() => insertCommand("Bullet list")}>Bullet list</div>
                     <div onClick={() => insertCommand("Цитата")}>Цитата</div>
                   </div>
                   <div className="slash-menu-group">
@@ -223,7 +196,6 @@ export default function NotesCreate() {
                     <div onClick={() => insertCommand("Image")}>Image</div>
                   </div>
                 </div>
-
                 <div
                   className="slash-menu-footer"
                   onClick={() => setSlashCommandOpen(false)}
@@ -261,52 +233,48 @@ export default function NotesCreate() {
               </button>
             </div>
             {imageMode === "url" ? (
-              <>
-                <input
-                  className="image-menu-input-url"
-                  type="text"
-                  placeholder="http://..."
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && imageUrl && editor) {
-                      editor.commands.setImage({ src: imageUrl });
-                      setimageMenuOpen(false);
-                      setImageUrl("");
-                    }
-                  }}
-                  onBlur={(e) => {
-                    if (imageUrl && editor) {
-                      editor.commands.setImage({ src: imageUrl });
-                      setimageMenuOpen(false);
-                      setImageUrl("");
-                    }
-                  }}
-                ></input>
-              </>
+              <input
+                className="image-menu-input-url"
+                type="text"
+                placeholder="http://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && imageUrl && editor) {
+                    editor.commands.setImage({ src: imageUrl });
+                    setImageMenuOpen(false);
+                    setImageUrl("");
+                  }
+                }}
+                onBlur={() => {
+                  if (imageUrl && editor) {
+                    editor.commands.setImage({ src: imageUrl });
+                    setImageMenuOpen(false);
+                    setImageUrl("");
+                  }
+                }}
+              />
             ) : (
-              <>
-                <label className="image-menu-input-file">
-                  Завантажити з ПК
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        if (editor) {
-                          editor.commands.setImage({ src: reader.result });
-                          setimageMenuOpen(false);
-                        }
-                      };
-                      reader.readAsDataURL(file);
-                    }}
-                  />
-                </label>
-              </>
+              <label className="image-menu-input-file">
+                Завантажити з ПК
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      if (editor) {
+                        editor.commands.setImage({ src: reader.result });
+                        setImageMenuOpen(false);
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </label>
             )}
           </div>
         )}

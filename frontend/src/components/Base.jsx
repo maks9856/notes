@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { v4 as uuidv4, validate as validateUUID } from "uuid";
+import { ACCESS_TOKEN } from "../constants";
 
 import "../styles/Base.css";
 import useUser from "../hooks/useUser";
@@ -31,10 +32,6 @@ export default function Base() {
   const [noteVersions, setNoteVersions] = useState([]);
   const navigate = useNavigate();
 
-  const handleCreateNote = () => {
-    const newNoteId = uuidv4();
-    navigate(`/notes/${newNoteId}`);
-  };
 
   const fetchNotes = () => {
     api
@@ -97,6 +94,23 @@ export default function Base() {
     setOpenSelectVersionNote(true);
   };
 
+  const handleCreateNote = () => {
+    const newNoteId = uuidv4();
+  api
+    .post(
+      `/notes-api/notes/${newNoteId}/`,
+      { title: "Нова нотатка", content: "" },
+      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } }
+    )
+    .then((res) => {
+      const createdNote = res.data;
+      setNotes((prev) => [createdNote, ...prev]);
+      navigate(`/notes/${createdNote.uuid}`);
+    })
+    .catch((err) => console.error("Помилка створення нотатки:", err));
+};
+
+
   if (loading) return;
   if (!user) return;
 
@@ -109,7 +123,7 @@ export default function Base() {
             className="notes-sidebar-swicher-button"
             onClick={handleCreateNote}
           >
-            <FontAwesomeIcon icon={faPen} />
+            <FontAwesomeIcon icon={faPen} onClick={handleCreateNote}/>
           </button>
         </div>
 
