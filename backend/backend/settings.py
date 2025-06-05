@@ -220,18 +220,20 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 ]
 DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
 
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379/0",
+        "LOCATION": os.getenv('REDIS_URL'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
 
-CELERY_BROKER_URL = 'redis://redis:6379/1'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL',)
+CELERY_RESULT_BACKEND = 'django-db'
 CELERY_TIMEZONE = 'UTC'
 CELERY_RESULT_EXTENDED = True
 CELERY_TASK_TRACK_STARTED = True

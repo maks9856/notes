@@ -2,6 +2,7 @@ services:
   redis:
     image: redis
     container_name: redis_container
+    hostname: redis
     ports:
       - "6379:6379"
     networks:

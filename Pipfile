@@ -22,8 +22,9 @@ unidecode = "*"
 redis = "*"
 django-redis = "*"
 celery = "*"
-django-celery-beat = "*"
 django-celery-results = "*"
+django-celery-beat = "*"
+flower = "*"
 
 [dev-packages]
 

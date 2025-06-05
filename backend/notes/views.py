@@ -7,10 +7,11 @@ from django.utils.text import slugify
 from unidecode import unidecode
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .djnago_redis import cache_note , get_cached_note
 from django.core.cache import cache
-from django.utils.timezone import now
+from celery.result import AsyncResult
+from .tasks import save_note_from_cache
 import json
+from django.core.serializers.json import DjangoJSONEncoder
 # Create your views here.
 class NoteListView(APIView):
     serializer_class = NoteSerializer
@@ -27,13 +28,27 @@ class NoteListView(APIView):
         return Response(notes)
 
 
-class NoteGetorCreateView(APIView):
+class NoteGetOrCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, uuid):
-        note = get_object_or_404(Note, uuid=uuid, user=request.user)
+        note = get_object_or_404(Note, uuid=uuid, author=request.user)
+        print('working1')
+        cache_key = f"note_buffer:{note.id}"
+        cached_data = cache.get(cache_key)
+        print('cached_data:', cached_data)
+        print('working2')
+        if cached_data:
+            print('working3')
+            response_data = {
+                "id": note.id,
+                "uuid": str(note.uuid),
+                **cached_data
+            }
+            return Response(response_data,status=status.HTTP_200_OK)
+        print('working4')
         serializer = NoteSerializer(note)
-        return Response(serializer.data)
+        return Response(serializer.data ,status=status.HTTP_200_OK)
 
     def post(self, request, uuid):
         note, created = Note.objects.get_or_create(
@@ -47,19 +62,36 @@ class NoteGetorCreateView(APIView):
 
     def put(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
+        
         serializer = NoteSerializer(note, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-
+       
         cache_key = f"note_buffer:{note.id}"
-        cache_value = {
-            "title": serializer.validated_data.get("title", note.title),
-            "content": serializer.validated_data.get("content", note.content),
-            "user_id": request.user.id,
-            "timestamp": str(now())
-        }
-        cache.set(cache_key, json.dumps(cache_value), timeout=60 * 5)
-        return Response(serializer.data)
+        task_id_key = f"note_task_id:{note.id}"
+
+    
+        old_task_id = cache.get(task_id_key)
+        if old_task_id:
+            AsyncResult(old_task_id).revoke(terminate=True)
+            print(f"Old task ID revoked: {old_task_id}")
+
+        
+        task = save_note_from_cache.apply_async(
+            args=[
+                note.id,
+                serializer.validated_data
+            ],
+            countdown=60 * 10
+        )
+
+        safe_data = json.loads(json.dumps(serializer.validated_data, cls=DjangoJSONEncoder))
+        safe_task_id = json.loads(json.dumps(task.id, cls=DjangoJSONEncoder))
+        cache.set(cache_key, safe_data, timeout=60 * 10)
+        
+        cache.set(task_id_key, safe_task_id, timeout=60 * 10)
+
+        return Response(serializer.validated_data,status=status.HTTP_200_OK)
+
 
     def delete(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
