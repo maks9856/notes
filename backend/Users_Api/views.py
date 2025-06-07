@@ -19,6 +19,7 @@ from .throttling import (
     PasswordResetConfirmRateThrottle
 )
 from .loging import log_event
+from .tasks import send_confirmation_email, send_change_password_email,send_password_reset_email
 
 
 # Create your views here.
@@ -31,32 +32,13 @@ class CreateUserView(generics.CreateAPIView):
     
     def perform_create(self, serializer):
         user = serializer.save()
-        self.send_confirmation_email(user)
+        send_confirmation_email.delay(user)
         log_event(self.request, user, "register")
      
     
     
-    def send_confirmation_email(self, user):
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        confirmation_url = f"http://localhost:5173/activate/{uid}/{token}/"
-
-        html_content = render_to_string("email/confirmation_email.html", {
-            'user': user,
-            'confirmation_link': confirmation_url
-        })
-        subject = "Activate your account"
-        from_email = None
-        to = [user.email]
-
-        msg = EmailMultiAlternatives(subject, '', from_email, to)
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
-    
-    
 class ProfileUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
-    throttle_classes = [ProfileRateThrottle]
     permission_classes = [IsAuthenticated]
     def get(self,request):
         user = request.user
@@ -86,17 +68,12 @@ class ChangePasswordView(APIView):
         if serializer.is_valid():
             if not user.check_password(serializer.validated_data['old_password']):
                 return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            
             user.set_password(serializer.validated_data['new_password'])
             user.save()
             
-            http_context= render_to_string("email/change_password_email.html", {'user': user})
-            subject = "Password Changed"
-            from_email = None
-            to = [user.email]
+            send_change_password_email.delay(user)
             
-            msg = EmailMultiAlternatives(subject, '', from_email, to)
-            msg.attach_alternative(http_context, "text/html")
-            msg.send()
             log_event(request, user, "password_change")
             return Response({'detail': 'Password successfully changed.'}, status=status.HTTP_200_OK)
                     
@@ -109,16 +86,7 @@ class PasswordResetView(APIView):
         email = request.data.get('email')
         try:
             user = User.objects.get(email=email)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-            reset_url = f"http://localhost:5173/reset-password/{uid}/{token}/"
-
-            send_mail(
-                subject="Password Reset Request",
-                message=f"Click the link to reset your password: {reset_url}",
-                from_email=None,
-                recipient_list=[email],
-            )
+            send_password_reset_email.delay(user)
         except User.DoesNotExist:
             pass
 

@@ -90,7 +90,7 @@ class NoteGetOrCreateView(APIView):
         old_task_id = cache.get(task_id_key)
         if old_task_id:
             AsyncResult(old_task_id).revoke(terminate=True)
-        print(f"Starting task for note {note.id} with data: {serializer.validated_data}")
+        
         
         task = save_note_from_cache.apply_async(
             args=[note.id, serializer.validated_data],
