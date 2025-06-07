@@ -182,3 +182,15 @@
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
+.content-menu{
+  position: absolute;
+  background-color: #202020;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1000;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background-color: #202020
+}

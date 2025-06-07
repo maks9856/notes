@@ -30,8 +30,13 @@ export default function Base() {
   const clockButtonRef = useRef(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
   const [noteVersions, setNoteVersions] = useState([]);
+  const [openContentMenu, setOpenContentMenu] = useState(false);
+  const [contentMenuPosition, setContentMenuPosition] = useState({
+    top: 0,
+    left: 0,
+  });
+  const contentMenuRef = useRef(null);
   const navigate = useNavigate();
-
 
   const fetchNotes = () => {
     api
@@ -43,7 +48,7 @@ export default function Base() {
   useEffect(() => {
     fetchNotes();
   }, []);
-  
+
   const fetchNoteVersions = (uuid) => {
     api
       .get(`/notes-api/notes/${uuid}/versions/`)
@@ -60,46 +65,61 @@ export default function Base() {
   }, [isUuidInPath, selectedNoteUuid]);
 
   useEffect(() => {
-  const uuidFromPath = pathname.split("/").at(-1);
-  if (!validateUUID(uuidFromPath)) {
-    setNoteTitle("");
-    setSelectedNoteUuid("");
-    return;
-  }
+    const uuidFromPath = pathname.split("/").at(-1);
+    if (!validateUUID(uuidFromPath)) {
+      setNoteTitle("");
+      setSelectedNoteUuid("");
+      return;
+    }
+    const found = notes.find((note) => note.uuid === uuidFromPath);
+    if (found) {
+      setNoteTitle(found.title);
+      setIsFavorite(found.is_favorite);
+      setSelectedNoteUuid(found.uuid);
+    } else {
+      setSelectedNoteUuid(uuidFromPath);
+    }
+  }, [pathname, notes]);
 
-  const found = notes.find((note) => note.uuid === uuidFromPath);
-  if (found) {
-    setNoteTitle(found.title);
-    setIsFavorite(found.is_favorite);
-    setSelectedNoteUuid(found.uuid);
-  } else {
-    // Якщо нотатку ще не завантажено — спроба дочекатися
-    setSelectedNoteUuid(uuidFromPath);
-  }
-}, [pathname, notes]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        contentMenuRef.current &&
+        !contentMenuRef.current.contains(event.target)
+      ) {
+        setOpenContentMenu(false);
+      }
+    };
 
+    if (openContentMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openContentMenu]);
 
   const toggleFavorite = async () => {
-  if (!selectedNoteUuid) return;
-  try {
-    const updatedValue = !isFavorite;
-    await api.put(`/notes-api/notes/${selectedNoteUuid}/`, {
-      is_favorite: updatedValue,
-    });
-    setIsFavorite(updatedValue);
+    if (!selectedNoteUuid) return;
+    try {
+      const updatedValue = !isFavorite;
+      await api.put(`/notes-api/notes/${selectedNoteUuid}/`, {
+        is_favorite: updatedValue,
+      });
+      setIsFavorite(updatedValue);
 
-    setNotes((prevNotes) =>
-      prevNotes.map((note) =>
-        note.uuid === selectedNoteUuid
-          ? { ...note, is_favorite: updatedValue }
-          : note
-      )
-    );
-  } catch (error) {
-    console.error("Failed to update favorite status", error);
-  }
-};
-
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.uuid === selectedNoteUuid
+            ? { ...note, is_favorite: updatedValue }
+            : note
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update favorite status", error);
+    }
+  };
 
   const handleClockButtonClick = () => {
     if (clockButtonRef.current) {
@@ -114,21 +134,29 @@ export default function Base() {
 
   const handleCreateNote = () => {
     const newNoteId = uuidv4();
-  api
-    .post(
-      `/notes-api/notes/${newNoteId}/`,
-      { title: "Нова нотатка", content: "" },
-      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } }
-    )
-    .then((res) => {
-      const createdNote = res.data;
-      setNotes((prev) => [createdNote, ...prev]);
-      navigate(`/notes/${createdNote.uuid}`);
-    })
-    .catch((err) => console.error("Помилка створення нотатки:", err));
-};
+    api
+      .post(
+        `/notes-api/notes/${newNoteId}/`,
+        { title: "Нова нотатка", content: "" },
+        { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } }
+      )
+      .then((res) => {
+        const createdNote = res.data;
+        setNotes((prev) => [createdNote, ...prev]);
+        navigate(`/notes/${createdNote.uuid}`);
+      })
+      .catch((err) => console.error("Помилка створення нотатки:", err));
+  };
 
-
+  const handleContentMenuClick = (e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setContentMenuPosition({
+      top: rect.top + window.scrollY,
+      left: rect.right + window.scrollX,
+    });
+    setOpenContentMenu(true);
+  };
   if (loading) return;
   if (!user) return;
 
@@ -141,7 +169,7 @@ export default function Base() {
             className="notes-sidebar-swicher-button"
             onClick={handleCreateNote}
           >
-            <FontAwesomeIcon icon={faPen} onClick={handleCreateNote}/>
+            <FontAwesomeIcon icon={faPen} onClick={handleCreateNote} />
           </button>
         </div>
 
@@ -161,21 +189,31 @@ export default function Base() {
                   ? note.title.slice(0, 15) + "…"
                   : note.title}
                 <div className="icons-wrapper">
+                  {/* 
                   <FontAwesomeIcon
                     icon={faArrowDown}
                     className="note-sidebar-icon"
                     onClick={(e) => e.stopPropagation()}
-                  />
-                  <FontAwesomeIcon
-                    icon={faEllipsis}
-                    className="note-sidebar-icon"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <FontAwesomeIcon
-                    icon={faPlus}
-                    className="note-sidebar-icon"
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  /> 
+                  */}
+
+                  {!openContentMenu && (
+                    <FontAwesomeIcon
+                      icon={faEllipsis}
+                      className="note-sidebar-icon"
+                      onClick={(e) => {
+                        setOpenContentMenu(true);
+                        handleContentMenuClick(e);
+                      }}
+                    />
+                  )}
+                  {!openContentMenu && (
+                    <FontAwesomeIcon
+                      icon={faPlus}
+                      className="note-sidebar-icon"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  )}
                 </div>
               </li>
             ))}
@@ -228,8 +266,8 @@ export default function Base() {
         <div
           className="popover-version-window"
           style={{
-            top: popoverPosition.top+10,
-            left: popoverPosition.left- 220,
+            top: popoverPosition.top + 10,
+            left: popoverPosition.left - 220,
           }}
         >
           <h4>Версії нотатки</h4>
@@ -252,6 +290,26 @@ export default function Base() {
           <button onClick={() => setOpenSelectVersionNote(false)}>
             Закрити
           </button>
+        </div>
+      )}
+
+      {openContentMenu && (
+        <div
+          className="content-menu"
+          ref={contentMenuRef}
+          style={{
+            top: contentMenuPosition.top,
+            left: contentMenuPosition.left,
+          }}
+        >
+          <ul>
+            <li onClick={() => navigate(`/notes/${selectedNoteUuid}/edit`)}>
+              Редагувати
+            </li>
+            <li onClick={() => navigate(`/notes/${selectedNoteUuid}/delete`)}>
+              Видалити
+            </li>
+          </ul>
         </div>
       )}
     </div>
