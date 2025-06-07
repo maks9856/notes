@@ -17,7 +17,10 @@ class NoteSerializer(serializers.ModelSerializer):
             'author': {'read_only': True},
             'uuid': {'required': False, 'read_only': False},
         }
-
+class NoteListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
+        fields = ["id", "uuid", "title", "updated_at"]
 class NoteVersionSerializer(serializers.ModelSerializer):
     edited_by = serializers.StringRelatedField(read_only=True)
     class Meta:

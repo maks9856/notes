@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note, Tag, NoteVersion
-from .serializers import NoteSerializer, TagSerializer, NoteVersionSerializer
+from .serializers import NoteSerializer, TagSerializer, NoteVersionSerializer, NoteListSerializer
 from django.utils.text import slugify
 from unidecode import unidecode
 from rest_framework.views import APIView
@@ -21,40 +21,29 @@ class NoteListView(APIView):
         cache_key = f"user_notes:{request.user.id}"
         notes = cache.get(cache_key)
         if notes is None:
-            notes_queryset = Note.objects.filter(author=request.user)
-            serializer = NoteSerializer(notes_queryset, many=True)
+            notes_queryset = Note.objects.filter(author=request.user).order_by('-updated_at')
+            serializer = NoteListSerializer(notes_queryset, many=True)
             notes = serializer.data
             cache.set(cache_key, notes, timeout=60 * 10)
-        return Response(notes)
+        print(notes)
+        return Response(notes,status=status.HTTP_200_OK)
 
 
 class NoteGetOrCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, uuid):
-        note = get_object_or_404(Note, uuid=uuid, author=request.user)
-        
-        cache_key = f"note_buffer:{note.id}"
-        cached_data = cache.get(cache_key)
-        
-        
-        if cached_data:
-            
-            response_data = {
-                "id": note.id,
-                "uuid": str(note.uuid),
-                **cached_data
-            }
-            return Response(response_data,status=status.HTTP_206_PARTIAL_CONTENT)
-        
+        note = get_object_or_404(Note, uuid=uuid, author=request.user)    
         serializer = NoteSerializer(note)
-        return Response(serializer.data ,status=status.HTTP_206_PARTIAL_CONTENT)
+        return Response(serializer.data ,status=status.HTTP_200_OK)
 
     def post(self, request, uuid):
         note, created = Note.objects.get_or_create(
-            uuid=uuid, author=request.user, defaults={"title": "", "content": ""}
+            uuid=uuid, author=request.user, defaults={"title": request.data.get('title',''), "content": request.data.get('content','')}
         )
         serializer = NoteSerializer(note)
+        self._update_note_list_cache(request.user)
+        
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -65,6 +54,9 @@ class NoteGetOrCreateView(APIView):
         
         serializer = NoteSerializer(note, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        serializer.save()
+        self._update_note_list_cache(request.user)
+        '''
        
         cache_key = f"note_buffer:{note.id}"
         task_id_key = f"note_task_id:{note.id}"
@@ -82,13 +74,13 @@ class NoteGetOrCreateView(APIView):
             ],
             countdown=60 * 10
         )
-
+        
         safe_data = json.loads(json.dumps(serializer.validated_data, cls=DjangoJSONEncoder))
         safe_task_id = json.loads(json.dumps(task.id, cls=DjangoJSONEncoder))
         cache.set(cache_key, safe_data, timeout=60 * 10)
         
         cache.set(task_id_key, safe_task_id, timeout=60 * 10)
-
+        '''
         return Response(serializer.validated_data,status=status.HTTP_200_OK)
 
 
@@ -96,7 +88,11 @@ class NoteGetOrCreateView(APIView):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
         note.delete()
         return Response({"detail": "Note deleted."}, status=status.HTTP_204_NO_CONTENT)
-
+    def _update_note_list_cache(self, user):
+        cache_key = f"user_notes:{user.id}"
+        notes_queryset = Note.objects.filter(author=user).order_by('-updated_at')
+        serializer = NoteListSerializer(notes_queryset, many=True)
+        cache.set(cache_key, serializer.data, timeout=60 * 10)
 
 class NoteVersionListView(APIView):
     permission_classes = [IsAuthenticated]
