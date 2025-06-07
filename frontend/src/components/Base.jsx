@@ -43,6 +43,7 @@ export default function Base() {
   useEffect(() => {
     fetchNotes();
   }, []);
+  
   const fetchNoteVersions = (uuid) => {
     api
       .get(`/notes-api/notes/${uuid}/versions/`)
@@ -51,37 +52,54 @@ export default function Base() {
       })
       .catch((err) => console.error(err));
   };
+
   useEffect(() => {
     if (isUuidInPath && selectedNoteUuid) {
       fetchNoteVersions(selectedNoteUuid);
     }
   }, [isUuidInPath, selectedNoteUuid]);
+
   useEffect(() => {
-    const uuidFromPath = pathname.split("/").at(-1);
-    const found = notes.find((note) => note.uuid === uuidFromPath);
-    if (found) {
-      setNoteTitle(found.title);
-      setIsFavorite(found.is_favorite);
-      setSelectedNoteUuid(found.uuid);
-    } else {
-      setNoteTitle("");
-      setSelectedNoteUuid("");
-    }
-  }, [pathname, notes]);
+  const uuidFromPath = pathname.split("/").at(-1);
+  if (!validateUUID(uuidFromPath)) {
+    setNoteTitle("");
+    setSelectedNoteUuid("");
+    return;
+  }
+
+  const found = notes.find((note) => note.uuid === uuidFromPath);
+  if (found) {
+    setNoteTitle(found.title);
+    setIsFavorite(found.is_favorite);
+    setSelectedNoteUuid(found.uuid);
+  } else {
+    // Якщо нотатку ще не завантажено — спроба дочекатися
+    setSelectedNoteUuid(uuidFromPath);
+  }
+}, [pathname, notes]);
+
 
   const toggleFavorite = async () => {
-    if (!selectedNoteUuid) return;
-    try {
-      const updatedValue = !isFavorite;
-      await api.put(`/notes-api/notes/${selectedNoteUuid}/`, {
-        is_favorite: updatedValue,
-      });
-      setIsFavorite(updatedValue);
-      fetchNotes();
-    } catch (error) {
-      console.error("Failed to update favorite status", error);
-    }
-  };
+  if (!selectedNoteUuid) return;
+  try {
+    const updatedValue = !isFavorite;
+    await api.put(`/notes-api/notes/${selectedNoteUuid}/`, {
+      is_favorite: updatedValue,
+    });
+    setIsFavorite(updatedValue);
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.uuid === selectedNoteUuid
+          ? { ...note, is_favorite: updatedValue }
+          : note
+      )
+    );
+  } catch (error) {
+    console.error("Failed to update favorite status", error);
+  }
+};
+
 
   const handleClockButtonClick = () => {
     if (clockButtonRef.current) {
