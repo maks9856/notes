@@ -36,6 +36,7 @@ export default function Base() {
     left: 0,
   });
   const contentMenuRef = useRef(null);
+  const [selectedNoteContentMenu, setSelectedNoteContentMenu] = useState(null);
   const navigate = useNavigate();
 
   const fetchNotes = () => {
@@ -148,15 +149,32 @@ export default function Base() {
       .catch((err) => console.error("Помилка створення нотатки:", err));
   };
 
-  const handleContentMenuClick = (e) => {
+  const handleContentMenuClick = (e,uuid) => {
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     setContentMenuPosition({
       top: rect.top + window.scrollY,
       left: rect.right + window.scrollX,
     });
+    setSelectedNoteContentMenu(uuid);
     setOpenContentMenu(true);
   };
+  const handleDeleteNote = (uuid) => {
+    if (!uuid) return;
+    api
+      .delete(`/notes-api/notes/${uuid}/`, {
+        headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+      })
+      .then(() => {
+        setNotes((prevNotes) => prevNotes.filter((note) => note.uuid !== uuid));
+        if (isUuidInPath && selectedNoteUuid === uuid) {
+          navigate("/notes");
+        }
+      })
+      .catch((err) => console.error("Помилка видалення нотатки:", err));
+  }
+  
+
   if (loading) return;
   if (!user) return;
 
@@ -169,7 +187,7 @@ export default function Base() {
             className="notes-sidebar-swicher-button"
             onClick={handleCreateNote}
           >
-            <FontAwesomeIcon icon={faPen} onClick={handleCreateNote} />
+            <FontAwesomeIcon icon={faPen}/>
           </button>
         </div>
 
@@ -203,7 +221,7 @@ export default function Base() {
                       className="note-sidebar-icon"
                       onClick={(e) => {
                         setOpenContentMenu(true);
-                        handleContentMenuClick(e);
+                        handleContentMenuClick(e, note.uuid);
                       }}
                     />
                   )}
@@ -302,11 +320,8 @@ export default function Base() {
             left: contentMenuPosition.left,
           }}
         >
-          <ul>
-            <li onClick={() => navigate(`/notes/${selectedNoteUuid}/edit`)}>
-              Редагувати
-            </li>
-            <li onClick={() => navigate(`/notes/${selectedNoteUuid}/delete`)}>
+          <ul className="content-menu-list">
+            <li className="content-menu-list-item" onClick={() => handleDeleteNote(selectedNoteUuid)}>
               Видалити
             </li>
           </ul>

@@ -90,6 +90,7 @@ class NoteGetOrCreateView(APIView):
         old_task_id = cache.get(task_id_key)
         if old_task_id:
             AsyncResult(old_task_id).revoke(terminate=True)
+            print(f"Revoked old task: {old_task_id}")
         
         
         task = save_note_from_cache.apply_async(

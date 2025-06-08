@@ -190,7 +190,36 @@
   align-items: center;
   flex-direction: column;
   z-index: 1000;
-  border: 1px solid transparent;
+  border: 2px solid #474747;
   border-radius: 8px;
-  background-color: #202020
+  background-color: #202020;
+  padding: 20px 20px 20px 10px;
+  
 }
+.content-menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.content-menu-list-item {
+  cursor: pointer;
+  color: #ffffff;
+  padding: 8px 12px 8px 12px;
+  border-radius: 6px;
+  background-color: transparent;
+  transform: scale(1);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  text-align: left; 
+}
+
+.content-menu-list-item:hover {
+  transform: scale(1.02);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
