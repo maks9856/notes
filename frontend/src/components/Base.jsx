@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPen,
@@ -37,6 +37,13 @@ export default function Base() {
   });
   const contentMenuRef = useRef(null);
   const [selectedNoteContentMenu, setSelectedNoteContentMenu] = useState(null);
+  const [openDeleteMenuNote, setOpenDeleteMenuNote] = useState(false);
+  const [deleteMenuNotePosition, setDeleteMenuNotePosition] = useState({
+    top: 0,
+    left: 0,
+  });
+  const deleteMenuRef = useRef(null);
+  const [deletedNotes, setDeletedNotes] = useState([]);
   const navigate = useNavigate();
 
   const fetchNotes = () => {
@@ -49,6 +56,15 @@ export default function Base() {
   useEffect(() => {
     fetchNotes();
   }, []);
+
+  const fetchDeletedNotes = () => {
+    api
+      .get("/notes-api/notes/deleted/")
+      .then((res) => setDeletedNotes(res.data))
+      .catch((err) =>
+        console.error("Помилка завантаження видалених нотаток:", err)
+      );
+  };
 
   const fetchNoteVersions = (uuid) => {
     api
@@ -100,7 +116,24 @@ export default function Base() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openContentMenu]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        deleteMenuRef.current &&
+        !deleteMenuRef.current.contains(event.target)
+      ) {
+        setOpenDeleteMenuNote(false);
+      }
+    };
 
+    if (openDeleteMenuNote) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDeleteMenuNote]);
   const toggleFavorite = async () => {
     if (!selectedNoteUuid) return;
     try {
@@ -132,6 +165,18 @@ export default function Base() {
     }
     setOpenSelectVersionNote(true);
   };
+  const handleDeleteButtonClick = (e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    
+
+    setDeleteMenuNotePosition({
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    });
+
+    setOpenDeleteMenuNote(true);
+  };
 
   const handleCreateNote = () => {
     const newNoteId = uuidv4();
@@ -149,7 +194,7 @@ export default function Base() {
       .catch((err) => console.error("Помилка створення нотатки:", err));
   };
 
-  const handleContentMenuClick = (e,uuid) => {
+  const handleContentMenuClick = (e, uuid) => {
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     setContentMenuPosition({
@@ -169,11 +214,11 @@ export default function Base() {
         setNotes((prevNotes) => prevNotes.filter((note) => note.uuid !== uuid));
         if (isUuidInPath && selectedNoteUuid === uuid) {
           navigate("/notes");
+          setOpenContentMenu(false);
         }
       })
       .catch((err) => console.error("Помилка видалення нотатки:", err));
-  }
-  
+  };
 
   if (loading) return;
   if (!user) return;
@@ -187,7 +232,7 @@ export default function Base() {
             className="notes-sidebar-swicher-button"
             onClick={handleCreateNote}
           >
-            <FontAwesomeIcon icon={faPen}/>
+            <FontAwesomeIcon icon={faPen} />
           </button>
         </div>
 
@@ -245,7 +290,14 @@ export default function Base() {
 
           <ul className="bottom-list">
             <li>Settings</li>
-            <li>Trash</li>
+            <li
+              onClick={(e) => {
+                handleDeleteButtonClick(e);
+                fetchDeletedNotes();
+              }}
+            >
+              Trash
+            </li>
           </ul>
         </div>
       </nav>
@@ -321,9 +373,41 @@ export default function Base() {
           }}
         >
           <ul className="content-menu-list">
-            <li className="content-menu-list-item" onClick={() => handleDeleteNote(selectedNoteUuid)}>
+            <li
+              className="content-menu-list-item"
+              onClick={() => handleDeleteNote(selectedNoteContentMenu)}
+            >
               Видалити
             </li>
+          </ul>
+        </div>
+      )}
+
+      {openDeleteMenuNote && (
+        <div
+          className="delete-menu"
+          ref={deleteMenuRef}
+          style={{
+            top: deleteMenuNotePosition.top -200,
+            left: deleteMenuNotePosition.left + 200,
+          }}
+        >
+          <p className="delete-menu-header">Deleted notes</p>
+          <ul className="delete-menu-list">
+            {deletedNotes.map((note) => (
+              <li
+                key={note.uuid}
+                className="delete-menu-list-item"
+                onClick={() => {
+                  setOpenDeleteMenuNote(false);
+                  navigate(`/notes/${note.uuid}`);
+                }}
+              >
+                {note.title.length > 20
+                  ? note.title.slice(0, 20) + "…"
+                  : note.title}
+              </li>
+            ))}
           </ul>
         </div>
       )}

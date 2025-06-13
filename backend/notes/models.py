@@ -13,6 +13,7 @@ class Note(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notes')
     is_favorite = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
     tag=models.ManyToManyField('Tag', blank=True, related_name='notes')
     def __str__(self):
         return self.title

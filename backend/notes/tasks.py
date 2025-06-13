@@ -32,6 +32,7 @@ def save_note_from_cache(note_id, data):
                 'content': buffered_data.get('content', note_obj.content),
                 'updated_at': note_obj.updated_at.isoformat(),
                 'created_at': note_obj.created_at.isoformat(),
+               
             })
         else:
             notes.append(NoteSerializer(note_obj).data)

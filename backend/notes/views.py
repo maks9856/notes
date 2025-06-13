@@ -23,7 +23,7 @@ class NoteListView(APIView):
         notes = cache.get(cache_key)
 
         if notes is None:
-            notes_queryset = Note.objects.filter(author=user)
+            notes_queryset = Note.objects.filter(author=user , is_deleted=False)
             notes = []
             for note in notes_queryset:
                 buffer_key = f"note_buffer:{note.id}"
@@ -90,9 +90,7 @@ class NoteGetOrCreateView(APIView):
         old_task_id = cache.get(task_id_key)
         if old_task_id:
             AsyncResult(old_task_id).revoke(terminate=True)
-            print(f"Revoked old task: {old_task_id}")
-        
-        
+            
         task = save_note_from_cache.apply_async(
             args=[note.id, serializer.validated_data],
             countdown=300
@@ -108,12 +106,28 @@ class NoteGetOrCreateView(APIView):
 
     def delete(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
-        note.delete()
+        cache_key = f"note_buffer:{note.id}"
+        task_id_key = f"note_task_id:{note.id}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            data_to_save = cached_data.copy()
+        else:
+            data_to_save = NoteSerializer(note).data
+        data_to_save['is_deleted'] = True
+        serializer = NoteSerializer(note, data=data_to_save, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        cache.set(cache_key, data_to_save, timeout=600)
         self._update_notes_cache(request.user)
-        return Response({"detail": "Note deleted."}, status=status.HTTP_204_NO_CONTENT)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 
     def _update_notes_cache(self, user):
-        notes_queryset = Note.objects.filter(author=user)
+        notes_queryset = Note.objects.filter(author=user, is_deleted=False)
         notes = []
         for note in notes_queryset:
             buffer_key = f"note_buffer:{note.id}"
@@ -133,7 +147,15 @@ class NoteGetOrCreateView(APIView):
         notes = sorted(notes, key=lambda x: x['updated_at'], reverse=True)
         cache.set(f"user_notes:{user.id}", notes, timeout=600)
 
-    
+
+class DeleteNoteListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        notes = Note.objects.filter(author=user, is_deleted=True).order_by('-updated_at')
+        serializer = NoteSerializer(notes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class NoteVersionListView(APIView):
     permission_classes = [IsAuthenticated]
