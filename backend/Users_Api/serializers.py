@@ -30,6 +30,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'email','username']
         
+class UserSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+        read_only_fields = ['user']
+        
+        
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)
     new_password = serializers.CharField(required=True, write_only=True)

@@ -14,6 +14,22 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
     
+
+class UserSettings(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    
+    email_notifications = models.BooleanField(default=True)
+    
+    autosave_enabled = models.BooleanField(default=True)
+    autosave_interval_minutes = models.PositiveIntegerField(default=5)
+    
+    notify_on_delete = models.BooleanField(default=True)
+    notify_on_restore = models.BooleanField(default=True)
+    notify_on_autosave = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"Settings for {self.user.email}"
+    
     
 class AuthLog(models.Model):
     EVENT_CHOICES=[
