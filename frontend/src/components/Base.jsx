@@ -88,13 +88,21 @@ export default function Base() {
       setSelectedNoteUuid("");
       return;
     }
-    const found = notes.find((note) => note.uuid === uuidFromPath);
-    if (found) {
-      setNoteTitle(found.title);
-      setIsFavorite(found.is_favorite);
-      setSelectedNoteUuid(found.uuid);
+    const foundInNotes = notes.find((note) => note.uuid === uuidFromPath);
+    const foundInDeletedNotes = deletedNotes.find((note) => note.uuid === uuidFromPath);
+    if (foundInNotes) {
+      setNoteTitle(foundInNotes.title);
+      setIsFavorite(foundInNotes.is_favorite);
+      setSelectedNoteUuid(foundInNotes.uuid);
+      fetchNoteVersions(foundInNotes.uuid);
+    } else if (foundInDeletedNotes) {
+      setNoteTitle(foundInDeletedNotes.title);
+      setIsFavorite(foundInDeletedNotes.is_favorite);
+      setSelectedNoteUuid(foundInDeletedNotes.uuid);
+      fetchNoteVersions(foundInDeletedNotes.uuid);
     } else {
       setSelectedNoteUuid(uuidFromPath);
+      setNoteTitle("");
     }
   }, [pathname, notes]);
 
@@ -168,7 +176,6 @@ export default function Base() {
   const handleDeleteButtonClick = (e) => {
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
-    
 
     setDeleteMenuNotePosition({
       top: rect.bottom + window.scrollY,
@@ -218,6 +225,26 @@ export default function Base() {
         }
       })
       .catch((err) => console.error("Помилка видалення нотатки:", err));
+  };
+  const handleRestoreNote = (uuid) => {
+    if (!uuid) return;
+
+    api
+      .post(
+        `/notes-api/notes/${uuid}/restore/`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${ACCESS_TOKEN}`,
+          },
+        }
+      )
+      .then(() => {
+        fetchDeletedNotes();
+        fetchNotes();
+        setOpenDeleteMenuNote(false);
+      })
+      .catch((err) => console.error("Помилка відновлення нотатки:", err));
   };
 
   if (loading) return;
@@ -388,25 +415,33 @@ export default function Base() {
           className="delete-menu"
           ref={deleteMenuRef}
           style={{
-            top: deleteMenuNotePosition.top -200,
+            top: deleteMenuNotePosition.top - 200,
             left: deleteMenuNotePosition.left + 200,
           }}
         >
           <p className="delete-menu-header">Deleted notes</p>
           <ul className="delete-menu-list">
             {deletedNotes.map((note) => (
-              <li
-                key={note.uuid}
-                className="delete-menu-list-item"
-                onClick={() => {
-                  setOpenDeleteMenuNote(false);
-                  navigate(`/notes/${note.uuid}`);
-                }}
-              >
-                {note.title.length > 20
-                  ? note.title.slice(0, 20) + "…"
-                  : note.title}
-              </li>
+              <span>
+                <li
+                  key={note.uuid}
+                  className="delete-menu-list-item"
+                  onClick={() => {
+                    setOpenDeleteMenuNote(false);
+                    navigate(`/notes/${note.uuid}`);
+                  }}
+                >
+                  {note.title.length > 20
+                    ? note.title.slice(0, 20) + "…"
+                    : note.title}
+                </li>
+                <button
+                  className="restore-button"
+                  onClick={() => handleRestoreNote(note.uuid)}
+                >
+                  Відновити
+                </button>
+              </span>
             ))}
           </ul>
         </div>

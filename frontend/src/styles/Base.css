@@ -234,17 +234,23 @@
   background-color: #202020;
   word-wrap: break-word;
   max-height: 150px;
+  min-height: 150px;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .delete-menu-header {
-  padding: 0 0 0 10px;
   font-size: 18px;
   color: #ffffff;
   font-weight: bold;
   border-bottom: 1px solid #474747;
   text-align: center;
+  z-index: 1000;
+  position: sticky;
+  top: 0;
+  background-color: #202020;
+  margin: 0;
+
 }
 
 .delete-menu-list {

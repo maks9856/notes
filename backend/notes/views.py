@@ -107,7 +107,7 @@ class NoteGetOrCreateView(APIView):
     def delete(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
         cache_key = f"note_buffer:{note.id}"
-        task_id_key = f"note_task_id:{note.id}"
+        
         cached_data = cache.get(cache_key)
         if cached_data:
             data_to_save = cached_data.copy()
@@ -156,6 +156,45 @@ class DeleteNoteListView(APIView):
         notes = Note.objects.filter(author=user, is_deleted=True).order_by('-updated_at')
         serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class NoteRestoreView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, uuid):
+        
+        note = Note.objects.get(uuid=uuid, author=request.user, is_deleted=True)
+        note.is_deleted = False
+        note.save(update_fields=["is_deleted"])
+
+        cache_key = f"note_buffer:{note.id}"
+        cache.delete(cache_key)
+
+        self._update_notes_cache(request.user)
+
+        return Response(NoteSerializer(note).data, status=200)
+
+
+    def _update_notes_cache(self, user):
+        notes_queryset = Note.objects.filter(author=user, is_deleted=False)
+        notes = []
+        for note in notes_queryset:
+            buffer_key = f"note_buffer:{note.id}"
+            buffered_data = cache.get(buffer_key)
+            if buffered_data:
+                notes.append({
+                    'id': note.id,
+                    'uuid': str(note.uuid),
+                    'title': buffered_data.get('title', note.title),
+                    'content': buffered_data.get('content', note.content),
+                    'updated_at': note.updated_at.isoformat(),
+                    'created_at': note.created_at.isoformat(),
+                })
+            else:
+                notes.append(NoteSerializer(note).data)
+
+        notes = sorted(notes, key=lambda x: x['updated_at'], reverse=True)
+        cache.set(f"user_notes:{user.id}", notes, timeout=600)
 
 class NoteVersionListView(APIView):
     permission_classes = [IsAuthenticated]

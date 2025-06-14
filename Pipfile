@@ -25,6 +25,7 @@ celery = "*"
 django-celery-results = "*"
 django-celery-beat = "*"
 flower = "*"
+django-extensions = "*"
 
 [dev-packages]
 
