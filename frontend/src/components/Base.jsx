@@ -17,6 +17,11 @@ import "../styles/Base.css";
 import useUser from "../hooks/useUser";
 import api from "../api";
 
+import SettingsMenu from "./BaseComponent/SettingsMenu";
+import DeleteMenu from "./BaseComponent/DeleteMenu";
+import ContentMenu from "./BaseComponent/ContentMenu";
+import VersionNote from "./BaseComponent/VersionNote";
+
 export default function Base() {
   const { user, loading } = useUser();
   const [notes, setNotes] = useState([]);
@@ -35,15 +40,16 @@ export default function Base() {
     top: 0,
     left: 0,
   });
-  const contentMenuRef = useRef(null);
+
   const [selectedNoteContentMenu, setSelectedNoteContentMenu] = useState(null);
   const [openDeleteMenuNote, setOpenDeleteMenuNote] = useState(false);
   const [deleteMenuNotePosition, setDeleteMenuNotePosition] = useState({
     top: 0,
     left: 0,
   });
-  const deleteMenuRef = useRef(null);
+
   const [deletedNotes, setDeletedNotes] = useState([]);
+  const [openSettingsMenu, setOpenSettingsMenu] = useState(false);
   const navigate = useNavigate();
 
   const fetchNotes = () => {
@@ -108,42 +114,6 @@ export default function Base() {
     }
   }, [pathname, notes]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        contentMenuRef.current &&
-        !contentMenuRef.current.contains(event.target)
-      ) {
-        setOpenContentMenu(false);
-      }
-    };
-
-    if (openContentMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [openContentMenu]);
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        deleteMenuRef.current &&
-        !deleteMenuRef.current.contains(event.target)
-      ) {
-        setOpenDeleteMenuNote(false);
-      }
-    };
-
-    if (openDeleteMenuNote) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [openDeleteMenuNote]);
   const toggleFavorite = async () => {
     if (!selectedNoteUuid) return;
     try {
@@ -319,7 +289,13 @@ export default function Base() {
           </ul>
 
           <ul className="bottom-list">
-            <li>Settings</li>
+            <li
+              onClick={(e) => {
+                setOpenSettingsMenu(true);
+              }}
+            >
+              Settings
+            </li>
             <li
               onClick={(e) => {
                 handleDeleteButtonClick(e);
@@ -363,93 +339,35 @@ export default function Base() {
       </div>
 
       {openSelectVersionNote && (
-        <div
-          className="popover-version-window"
-          style={{
-            top: popoverPosition.top + 10,
-            left: popoverPosition.left - 220,
-          }}
-        >
-          <h4>Версії нотатки</h4>
-          <ul>
-            {noteVersions.map((version) => (
-              <li
-                key={version.id}
-                onClick={() => {
-                  navigate(`/notes/${selectedNoteUuid}/versions/${version.id}`);
-                  setOpenSelectVersionNote(false);
-                }}
-              >
-                {new Date(version.created_at).toLocaleDateString()} -{" "}
-                {version.title.length > 20
-                  ? version.title.slice(0, 20) + "…"
-                  : version.title}
-              </li>
-            ))}
-          </ul>
-          <button onClick={() => setOpenSelectVersionNote(false)}>
-            Закрити
-          </button>
-        </div>
+        <VersionNote
+          position={popoverPosition}
+          versions={noteVersions}
+          selectedUuid={selectedNoteUuid}
+          onClose={() => setOpenSelectVersionNote(false)}
+        />
       )}
 
       {openContentMenu && (
-        <div
-          className="content-menu"
-          ref={contentMenuRef}
-          style={{
-            top: contentMenuPosition.top,
-            left: contentMenuPosition.left,
-          }}
-        >
-          <ul className="content-menu-list">
-            <li
-              className="content-menu-list-item"
-              onClick={() => handleDeleteNote(selectedNoteContentMenu)}
-            >
-              Видалити
-            </li>
-          </ul>
-        </div>
+        <ContentMenu
+          position={contentMenuPosition}
+          selectedUuid={selectedNoteContentMenu}
+          onClose={() => setOpenContentMenu(false)}
+          onDelete={handleDeleteNote}
+        />
       )}
 
       {openDeleteMenuNote && (
-        <div
-          className="delete-menu"
-          ref={deleteMenuRef}
-          style={{
-            top: deleteMenuNotePosition.top - 200,
-            left: deleteMenuNotePosition.left + 200,
-          }}
-        >
-          <p className="delete-menu-header">Deleted notes</p>
+        <DeleteMenu
+          position={deleteMenuNotePosition}
+          deletedNotes={deletedNotes}
+          onClose={() => setOpenDeleteMenuNote(false)}
+          onRestore={handleRestoreNote}
+          onNavigate={(uuid) => navigate(`/notes/${uuid}`)}
+        />
+      )}
 
-          <div className="delete-menu-scroll-container">
-            <ul className="delete-menu-list">
-              {deletedNotes.map((note) => (
-                <span key={note.uuid} className="delete-menu-list-item-wrapper">
-                  <li
-                    className="delete-menu-list-item"
-                    onClick={() => {
-                      setOpenDeleteMenuNote(false);
-                      navigate(`/notes/${note.uuid}`);
-                    }}
-                  >
-                    {note.title.length > 20
-                      ? note.title.slice(0, 20) + "…"
-                      : note.title}
-                  </li>
-                  <button
-                    className="delete-menu-restore-button"
-                    onClick={() => handleRestoreNote(note.uuid)}
-                  >
-                    Відновити
-                  </button>
-                </span>
-              ))}
-            </ul>
-          </div>
-        </div>
+      {openSettingsMenu && (
+        <SettingsMenu onClose={() => setOpenSettingsMenu(false)} />
       )}
     </div>
   );
