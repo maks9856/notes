@@ -224,19 +224,16 @@
 
 .delete-menu {
   position: absolute;
-  background-color: #202020;
   display: flex;
-  width: 300px;
   flex-direction: column;
-  z-index: 1000;
+  width: 300px;
+  max-height: 200px;
+  background-color: #202020;
   border: 2px solid #474747;
   border-radius: 8px;
-  background-color: #202020;
-  word-wrap: break-word;
-  max-height: 150px;
-  min-height: 150px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  z-index: 1000;
+  overflow: hidden;
+  min-height: 200px;
 }
 
 .delete-menu-header {
@@ -245,12 +242,18 @@
   font-weight: bold;
   border-bottom: 1px solid #474747;
   text-align: center;
-  z-index: 1000;
   position: sticky;
   top: 0;
   background-color: #202020;
   margin: 0;
+  padding: 10px 0;
+  z-index: 1;
+}
 
+.delete-menu-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 150px;
 }
 
 .delete-menu-list {
@@ -263,6 +266,14 @@
   gap: 4px;
   align-items: flex-start;
 }
+
+.delete-menu-list-item-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .delete-menu-list-item {
   cursor: pointer;
   color: #ffffff;
@@ -270,4 +281,22 @@
   background-color: transparent;
   transform: scale(1);
   transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.delete-menu-list-item:hover {
+  background-color: #2a2a2a;
+}
+
+.delete-menu-restore-button {
+  background-color: transparent;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.delete-menu-restore-button:hover {
+  background-color: #333333;
 }

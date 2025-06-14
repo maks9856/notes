@@ -89,7 +89,9 @@ export default function Base() {
       return;
     }
     const foundInNotes = notes.find((note) => note.uuid === uuidFromPath);
-    const foundInDeletedNotes = deletedNotes.find((note) => note.uuid === uuidFromPath);
+    const foundInDeletedNotes = deletedNotes.find(
+      (note) => note.uuid === uuidFromPath
+    );
     if (foundInNotes) {
       setNoteTitle(foundInNotes.title);
       setIsFavorite(foundInNotes.is_favorite);
@@ -221,8 +223,9 @@ export default function Base() {
         setNotes((prevNotes) => prevNotes.filter((note) => note.uuid !== uuid));
         if (isUuidInPath && selectedNoteUuid === uuid) {
           navigate("/notes");
-          setOpenContentMenu(false);
         }
+        setOpenContentMenu(false);
+        setSelectedNoteContentMenu(null);
       })
       .catch((err) => console.error("Помилка видалення нотатки:", err));
   };
@@ -420,30 +423,32 @@ export default function Base() {
           }}
         >
           <p className="delete-menu-header">Deleted notes</p>
-          <ul className="delete-menu-list">
-            {deletedNotes.map((note) => (
-              <span>
-                <li
-                  key={note.uuid}
-                  className="delete-menu-list-item"
-                  onClick={() => {
-                    setOpenDeleteMenuNote(false);
-                    navigate(`/notes/${note.uuid}`);
-                  }}
-                >
-                  {note.title.length > 20
-                    ? note.title.slice(0, 20) + "…"
-                    : note.title}
-                </li>
-                <button
-                  className="restore-button"
-                  onClick={() => handleRestoreNote(note.uuid)}
-                >
-                  Відновити
-                </button>
-              </span>
-            ))}
-          </ul>
+
+          <div className="delete-menu-scroll-container">
+            <ul className="delete-menu-list">
+              {deletedNotes.map((note) => (
+                <span key={note.uuid} className="delete-menu-list-item-wrapper">
+                  <li
+                    className="delete-menu-list-item"
+                    onClick={() => {
+                      setOpenDeleteMenuNote(false);
+                      navigate(`/notes/${note.uuid}`);
+                    }}
+                  >
+                    {note.title.length > 20
+                      ? note.title.slice(0, 20) + "…"
+                      : note.title}
+                  </li>
+                  <button
+                    className="delete-menu-restore-button"
+                    onClick={() => handleRestoreNote(note.uuid)}
+                  >
+                    Відновити
+                  </button>
+                </span>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>

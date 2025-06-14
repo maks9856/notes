@@ -14,7 +14,6 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 # Create your views here.
 class NoteListView(APIView):
-    serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -23,28 +22,29 @@ class NoteListView(APIView):
         notes = cache.get(cache_key)
 
         if notes is None:
-            notes_queryset = Note.objects.filter(author=user , is_deleted=False)
-            notes = []
-            for note in notes_queryset:
-                buffer_key = f"note_buffer:{note.id}"
-                buffered_data = cache.get(buffer_key)
-                if buffered_data:
-                    notes.append({
-                        'id': note.id,
-                        'uuid': str(note.uuid),
-                        'title': buffered_data.get('title', note.title),
-                        'content': buffered_data.get('content', note.content),
-                        'updated_at': note.updated_at.isoformat(),
-                        'created_at': note.created_at.isoformat(),
-                    })
-                else:
-                    notes.append(NoteSerializer(note).data)
-
-            
-            notes = sorted(notes, key=lambda x: x['updated_at'], reverse=True)
+            notes = self._get_notes_with_cache(user)
             cache.set(cache_key, notes, timeout=600)
 
         return Response(notes, status=status.HTTP_200_OK)
+
+    def _get_notes_with_cache(self, user):
+        notes_queryset = Note.objects.filter(author=user, is_deleted=False)
+        notes = []
+        for note in notes_queryset:
+            buffer_key = f"note_buffer:{note.id}"
+            buffered_data = cache.get(buffer_key)
+            if buffered_data:
+                notes.append({
+                    'id': note.id,
+                    'uuid': str(note.uuid),
+                    'title': buffered_data.get('title', note.title),
+                    'content': buffered_data.get('content', note.content),
+                    'updated_at': note.updated_at.isoformat(),
+                    'created_at': note.created_at.isoformat(),
+                })
+            else:
+                notes.append(NoteSerializer(note).data)
+        return sorted(notes, key=lambda x: x['updated_at'], reverse=True)
 
 
 
@@ -64,20 +64,15 @@ class NoteGetOrCreateView(APIView):
         return Response(NoteSerializer(note).data, status=status.HTTP_200_OK)
 
     def post(self, request, uuid):
+        serializer = NoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         note, created = Note.objects.get_or_create(
             uuid=uuid,
             author=request.user,
-            defaults={
-                "title": request.data.get('title', ''),
-                "content": request.data.get('content', ''),
-            }
+            defaults=serializer.validated_data,
         )
-        serializer = NoteSerializer(note)
         self._update_notes_cache(request.user)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
-        )
+        return Response(NoteSerializer(note).data, status=201 if created else 200)
 
     def put(self, request, uuid):
         note = get_object_or_404(Note, uuid=uuid, author=request.user)
@@ -163,7 +158,7 @@ class NoteRestoreView(APIView):
 
     def post(self, request, uuid):
         
-        note = Note.objects.get(uuid=uuid, author=request.user, is_deleted=True)
+        note = get_object_or_404(Note, uuid=uuid, author=request.user, is_deleted=True)
         note.is_deleted = False
         note.save(update_fields=["is_deleted"])
 
