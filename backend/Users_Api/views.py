@@ -1,13 +1,11 @@
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated , AllowAny
-from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSerializer, CustomTokenObtainPairSerializer
+from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSerializer, CustomTokenObtainPairSerializer, UserSettingsSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives,send_mail
 from django.utils.http import urlsafe_base64_encode , urlsafe_base64_decode
 from django.utils.encoding import force_bytes,force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -20,6 +18,7 @@ from .throttling import (
 )
 from .loging import log_event
 from .tasks import send_confirmation_email, send_change_password_email,send_password_reset_email
+from .models import UserSettings
 
 
 # Create your views here.
@@ -158,4 +157,24 @@ class EmailVerificationView(APIView):
         
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
             return Response({"detail": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class UserSettingsView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        settings=request.user.settings
+        serializer = UserSettingsSerializer(settings)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        settings = request.user.settings
+        serializer = UserSettingsSerializer(settings, data=request.data, partial=True)
         
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
