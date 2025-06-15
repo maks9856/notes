@@ -1,5 +1,8 @@
 from django.urls import path, include
-from .views import CreateUserView ,ProfileUserView,LogoutView, ChangePasswordView, PasswordResetView,PasswordResetConfirmView, CustomTokenObtainPairView, CustomTokenRefreshView,EmailVerificationView,UserSettingsView
+from .views import (CreateUserView ,ProfileUserView,LogoutView, ChangePasswordView,
+                    PasswordResetView,PasswordResetConfirmView, CustomTokenObtainPairView,
+                    CustomTokenRefreshView,EmailVerificationView,UserSettingsView,
+                    PasswordValidateView)
 
 urlpatterns = [
     path('user/register/', CreateUserView.as_view(), name='register'),
@@ -12,5 +15,6 @@ urlpatterns = [
     path('user/password_reset_confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('user/activation/',EmailVerificationView.as_view(), name='email_verification'),
     path('settings/', UserSettingsView.as_view(), name='user_settings'),
+    path('user/password/validate/',PasswordValidateView.as_view(), name='password_validate'),
     path('api-auth',include('rest_framework.urls', namespace='rest_framework'))
 ]
