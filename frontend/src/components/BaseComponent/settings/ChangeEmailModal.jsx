@@ -16,7 +16,7 @@ export default function ChangeEmailModal({ email, onClose }) {
     setLoading(true);
     setMessage("");
     try {
-       await api.post("/api/user/password/validate/", {
+      await api.post("/api/user/password/validate/", {
         password: currentPassword,
       });
       setStep(2);
@@ -32,7 +32,9 @@ export default function ChangeEmailModal({ email, onClose }) {
     setLoading(true);
     setMessage("");
     try {
-      await api.post("/api/users/email_confirmation_code/", { email: newEmail });
+      await api.post("/api/users/email_confirmation_code/", {
+        email: newEmail,
+      });
       setStep(3);
     } catch (error) {
       setMessage("Email change request failed.");
@@ -46,7 +48,7 @@ export default function ChangeEmailModal({ email, onClose }) {
     setLoading(true);
     setMessage("");
     try {
-      await api.post("/auth/users/verify_email_code/", {
+      await api.post("/api/users/verify_email_code/", {
         code: verificationCode,
       });
       setMessage("Email successfully updated.");

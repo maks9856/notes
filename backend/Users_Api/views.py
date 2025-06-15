@@ -7,7 +7,8 @@ from .serializers import (
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
     UserSettingsSerializer,
-    SetEmailSerializer
+    SetEmailSerializer,
+    VerifyEmailCodeSerializer
 )
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -248,10 +249,23 @@ class UserSettingsView(generics.RetrieveUpdateAPIView):
 
 
 class SetEmailView(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self,request):
-        serializer=SetEmailSerializer(data=request.data,context={'request': request})
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = SetEmailSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
             return Response({"detail": "Verification code sent."})
+        return Response(serializer.errors, status=400)
+
+
+class VerifyEmailCodeView(APIView):
+    permission_classes =[IsAuthenticated]
+    
+    def post(self,request):
+        serializer=VerifyEmailCodeSerializer(data=request.data, context={'request': request})
+        print(request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({"detail": "Email updated successfully."})
         return Response(serializer.errors, status=400)
