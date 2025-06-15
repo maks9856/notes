@@ -51,3 +51,19 @@ def send_password_reset_email(user):
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
+@shared_task
+def send_email_confirmation_code(email,code):
+    print(email)
+    html_content=render_to_string("email/send_email_confirmation_code.html",{
+        'email':email,
+        'code':code
+    })
+    subject ="Email Confirmation Code"
+    from_email=None
+    to=[email]
+    
+    msg=EmailMultiAlternatives(subject,'',from_email,to)
+    msg.attach_alternative(html_content,'text/html')
+    msg.send()
+    
+    

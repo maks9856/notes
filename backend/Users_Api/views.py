@@ -7,6 +7,7 @@ from .serializers import (
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
     UserSettingsSerializer,
+    SetEmailSerializer
 )
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -244,3 +245,13 @@ class UserSettingsView(generics.RetrieveUpdateAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SetEmailView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        serializer=SetEmailSerializer(data=request.data,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"detail": "Verification code sent."})
+        return Response(serializer.errors, status=400)

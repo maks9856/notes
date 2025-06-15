@@ -2,7 +2,12 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.utils.crypto import get_random_string
 from .loging import log_event
+from django.core.cache import cache
+from .tasks import (
+    send_email_confirmation_code
+)
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -54,4 +59,22 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         log_event(request, self.user, "login_success")
         return data
     
+class SetEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    
+    def validate_email(self,value):
+        user_model=self.context['request'].user.__class__
+        if user_model.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Цей email вже зайнятий.")
+        return value
+    
+    
+    def save(self, **kwargs):
+        email=self.validated_data['email']
+        user = self.context['request'].user
+        code=get_random_string(6,allowed_chars='0123456789')
+        key=f"email_change:{user.id}"
+        cache.set(key,{'code':code,'email':email},timeout=600)
+        send_email_confirmation_code.delay(email,code)
+        
         

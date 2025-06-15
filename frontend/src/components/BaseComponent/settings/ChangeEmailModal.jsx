@@ -16,9 +16,10 @@ export default function ChangeEmailModal({ email, onClose }) {
     setLoading(true);
     setMessage("");
     try {
-      await api.post("/api/user/password/validate/", {
+       await api.post("/api/user/password/validate/", {
         password: currentPassword,
       });
+      setStep(2);
     } catch (error) {
       setMessage("Invalid password");
     } finally {
@@ -31,7 +32,7 @@ export default function ChangeEmailModal({ email, onClose }) {
     setLoading(true);
     setMessage("");
     try {
-      await api.post("/auth/users/set_email/", { email: newEmail });
+      await api.post("/api/users/email_confirmation_code/", { email: newEmail });
       setStep(3);
     } catch (error) {
       setMessage("Email change request failed.");
