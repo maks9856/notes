@@ -147,7 +147,7 @@
   background-color: rgba(0, 0, 0, 0.473); 
   z-index: 999;
 }
-.change-email-modal {
+.change-modal {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -161,40 +161,40 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
 }
 
-.change-email-modal-header {
+.change-modal-header {
   display: flex;
   flex-direction: column;
   margin-bottom: 1rem;
 }
-.change-email-modal-header-title {
+.change-modal-header-title {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 5px;
 }
-.change-email-modal-header-title h3 {
+.change-modal-header-title h3 {
   margin: 0;
   color: #f5f5f5;
 }
-.change-email-modal-header p {
+.change-modal-header p {
   color: #ffffff;
 }
-.change-email-modal-close {
+.change-modal-close {
   cursor: pointer;
   color: #aaa;
 }
 
-.change-email-modal-form {
+.change-modal-form {
   display: flex;
   flex-direction: column;
 }
 
-.change-email-modal-form label {
+.change-modal-form label {
   margin-bottom: 0.5rem;
   color: #ddd;
 }
 
-.change-email-modal-form input {
+.change-modal-form input {
   padding: 0.5rem;
   background: #2a2a2a;
   border: 1px solid #444;
@@ -203,7 +203,7 @@
   margin-bottom: 1rem;
 }
 
-.change-email-modal-form button {
+.change-modal-form button {
   padding: 0.5rem;
   border: none;
   background: #3b82f6;
@@ -213,12 +213,12 @@
   font-weight: 500;
 }
 
-.change-email-modal-form button:disabled {
+.change-modal-form button:disabled {
   background: #555;
   cursor: not-allowed;
 }
 
-.change-email-modal-message {
+.change-modal-message {
   margin-top: 1rem;
   color: #ccc;
   font-size: 14px;

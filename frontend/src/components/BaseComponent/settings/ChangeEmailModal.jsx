@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import api from "../../../api";
-import { ACCESS_TOKEN } from "../../../constants";
 
 export default function ChangeEmailModal({ email, onClose }) {
   const [step, setStep] = useState(1);
@@ -62,11 +61,11 @@ export default function ChangeEmailModal({ email, onClose }) {
   return (
     <>
       <div className="dark-overlay" onClick={onClose}></div>
-      <div className="change-email-modal">
-        <div className="change-email-modal-header">
-          <div className="change-email-modal-header-title">
+      <div className="change-modal">
+        <div className="change-modal-header">
+          <div className="change-modal-header-title">
             <h3>Change Email</h3>
-            <X className="change-email-modal-close" onClick={onClose} />
+            <X className="change-modal-close" onClick={onClose} />
           </div>
           <p>Your current email is {email}</p>
         </div>
@@ -74,7 +73,7 @@ export default function ChangeEmailModal({ email, onClose }) {
         {step === 1 && (
           <form
             onSubmit={handlePasswordSubmit}
-            className="change-email-modal-form"
+            className="change-modal-form"
           >
             <label htmlFor="currentPassword">Enter current password</label>
             <input
@@ -94,7 +93,7 @@ export default function ChangeEmailModal({ email, onClose }) {
         {step === 2 && (
           <form
             onSubmit={handleEmailSubmit}
-            className="change-email-modal-form"
+            className="change-modal-form"
           >
             <label htmlFor="newEmail">New email address</label>
             <input
@@ -114,7 +113,7 @@ export default function ChangeEmailModal({ email, onClose }) {
         {step === 3 && (
           <form
             onSubmit={handleCodeConfirm}
-            className="change-email-modal-form"
+            className="change-modal-form"
           >
             <label htmlFor="code">Enter verification code</label>
             <input

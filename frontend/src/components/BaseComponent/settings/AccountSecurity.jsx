@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import api from "../../../api";
 import ChangeEmailModal from "./changeEmailModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 export default function AccountSecurity() {
   const [email, setEmail] = useState("");
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPasswordModal,setShowPasswordModal]=useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -38,7 +40,7 @@ export default function AccountSecurity() {
               Change your password to login to your account.
             </p>
           </div>
-          <button>Change password</button>
+          <button onClick={()=>setShowPasswordModal(true)}>Change password</button>
         </div>
 
         <div className="security-row">
@@ -58,6 +60,11 @@ export default function AccountSecurity() {
           onClose={() => setShowEmailModal(false)}
         />
       )}
+      {
+        showPasswordModal &&(
+          <ChangePasswordModal onClose={()=>setShowPasswordModal(false)}></ChangePasswordModal>
+        )
+      }
     </>
   );
 }

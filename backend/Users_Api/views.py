@@ -231,21 +231,13 @@ class EmailVerificationView(APIView):
 
 class UserSettingsView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        settings = request.user.settings
-        serializer = UserSettingsSerializer(settings)
-        return Response(serializer.data)
-
-    def put(self, request):
-        settings = request.user.settings
-        serializer = UserSettingsSerializer(settings, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer_class= UserSettingsSerializer
+    def get_object(self):
+        return self.request.user.settings
+    
+    def perform_update(self, serializer):
+        return serializer.save()
+    
 
 
 class SetEmailView(APIView):
@@ -264,7 +256,6 @@ class VerifyEmailCodeView(APIView):
     
     def post(self,request):
         serializer=VerifyEmailCodeSerializer(data=request.data, context={'request': request})
-        print(request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response({"detail": "Email updated successfully."})
